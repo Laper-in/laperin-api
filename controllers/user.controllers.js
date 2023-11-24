@@ -20,12 +20,14 @@ function signup(req, res, next){
                 email : req.body.email,
                 fullname : req.body.fullname,
                 picture : req.body.picture,
-                bio : req.body.bio,
+                alamat : req.body.alamat,
+                telephone: req.body.telephone,
+                role: req.body.role,
                 createdAt : new Date(),
                 updatedAt : new Date(),
-                createdBy : 0,
                 updatedBy : 0,
-                isDeleted : false
+                isDeleted : false,
+                isPro     : false
             }
         
             const schema = {
@@ -107,10 +109,13 @@ function update(req, res, next){
         email : req.body.email,
         fullname : req.body.fullname,
         picture : req.body.picture,
-        bio : req.body.bio,
+        alamat : req.body.alamat,
+        telephone: req.body.telephone,
+        role: req.body.role,
         updatedAt : new Date(),
         updatedBy : 0,
-        isDeleted : false
+        isDeleted : false,
+        isPro     : false
     }
 
     const schema = {
@@ -181,7 +186,8 @@ function signin(req, res, next){
                         const token = jwt.sign({
                             email : user.email,
                             username : user.username,
-                            userid : user.id
+                            userid : user.id,
+                            role : user.role
                         }, JWT_SECRET, function (err, token){
                             res.status(200).json({
                                 status : "SUCCESS",

@@ -23,11 +23,23 @@ module.exports = {
       picture: {
         type: Sequelize.STRING(100)
       },
-      bio: {
+      alamat: {
         type: Sequelize.STRING(255)
       },
-      createdBy: {
-        type: Sequelize.INTEGER
+      telephone: {
+        type: Sequelize.INTEGER(20)
+      },
+      role: {
+        type: Sequelize.STRING(10),
+        defaultValue: 'user'
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
       },
       updatedBy: {
         type: Sequelize.INTEGER
@@ -41,13 +53,8 @@ module.exports = {
       isDeleted: {
         type: Sequelize.BOOLEAN
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+      isPro: {
+        type: Sequelize.BOOLEAN
       }
     });
   },
