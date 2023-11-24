@@ -1,4 +1,4 @@
-# Getting Stated
+# Getting Strated
 
 
 > 1. Create database In MySQL with name account_db
