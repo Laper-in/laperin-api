@@ -1,86 +1,83 @@
 const e = require('express');
 const { User } = require('../models');
 const { use } = require('../routes/users');
+const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
+const { Op } = require('sequelize');
 const v = new Validator();
 var jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/'); // Destination folder for uploaded files
+    },
+    filename: function (req, file, cb) {
+      const ext = file.originalname.split('.').pop();
+      cb(null, Date.now() + '-' + file.fieldname + '.' + ext); // Unique filename
+    },
+  });
+  
 
 
 //CREATE USER
 function signup(req, res, next){
-
     bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(req.body.password, salt, function(err, hash) {
             const data = {
-                username : req.body.username,
-                password : hash,
-                email : req.body.email,
-                fullname : req.body.fullname,
-                picture : req.body.picture,
-                alamat : req.body.alamat,
-                telephone: req.body.telephone,
-                role: req.body.role,
-                createdAt : new Date(),
-                updatedAt : new Date(),
-                updatedBy : 0,
-                isDeleted : false,
-                isPro     : false
-            }
+                id: nanoid(10), // Use nanoid for generating ID
+                username: req.body.username,
+                password: hash,
+                email: req.body.email,
+                fullname: req.body.fullname,
+                createdAt: new Date(),
+            };
         
             const schema = {
-                username : { type: "string", min: 5, max: 50, optional: false },
-                email : { type: "email", optional: false },
-                password : { type: "string", min: 5, max: 255, optional: false },
-            }
+                username: { type: "string", min: 5, max: 50, optional: false },
+                email: { type: "email", optional: false },
+                password: { type: "string", min: 5, max: 255, optional: false },
+            };
         
-            //-- VALIDASI EMAIL
-            User.findOne({ where : {email : req.body.email} }).then(user => {
+            User.findOne({ where: { email: req.body.email } }).then(user => {
                 if(user){
-                    // -- Email sudah digunakan
                     res.status(400).json({
-                        message : 'Email already exist'
+                        message: 'Email already exists',
                     });
-                }else{
-                    // -- Email belum digunakan
-        
-                    // -- VALIDASI DATA
+                } else {
                     const validationResult = v.validate(data, schema);
         
                     if (validationResult !== true) {
-                        // -- Data tidak valid
                         res.status(400).json({
-                            message : 'Validation Failed',
-                            data: validationResult
+                            message: 'Validation Failed',
+                            data: validationResult,
                         });
                     } else {
-                        // -- Create user jika email belum digunakan
-                        // -- Data valid dan bisa disimpan kedalam database
                         User.create(data).then(result => {
                             res.status(200).json({
-                                message : 'Success',
-                                data: result
+                                message: 'Success',
+                                data: result,
                             });
                         }).catch(err => {
                             res.status(500).json({
-                                message : 'Register Failed',
-                                data: err
+                                message: 'Register Failed',
+                                data: err,
                             });
                         });                
                     }            
                 }
             }).catch(err => {
                 res.status(500).json({
-                    message : 'Something wrong',
-                    data: err
+                    message: 'Something went wrong',
+                    data: err,
                 });        
             });
-        
-        
-        })
-    })
+        });
+    });
 }  
 //READ USER
 function read(req, res, next){
@@ -102,56 +99,66 @@ function readbyid(req, res, next) {
     });
 }
 //UPDATE USER
-function update(req, res, next){
+function update(req, res, next) {
     const data = {
-        username : req.body.username,
-        password : req.body.password,
-        email : req.body.email,
-        fullname : req.body.fullname,
-        picture : req.body.picture,
-        alamat : req.body.alamat,
-        telephone: req.body.telephone,
-        role: req.body.role,
-        updatedAt : new Date(),
-        updatedBy : 0,
-        isDeleted : false,
-        isPro     : false
-    }
-
-    const schema = {
-        username : { type: "string", min: 5, max: 50, optional: false },
-        email : { type: "email", optional: false },
-        password : { type: "string", min: 5, max: 50, optional: false },
-    }    
-
-
-    // -- VALIDASI DATA
-    const validationResult = v.validate(data, schema);
-
-    if (validationResult !== true) {
-        // -- Data tidak valid
-        res.status(400).json({
-            message : 'Validation Failed',
-            data: validationResult
+      password: req.body.password,
+      email: req.body.email,
+      fullname: req.body.fullname,
+      picture: req.file ? req.file.filename : req.body.picture,
+      alamat: req.body.alamat,
+      telephone: req.body.telephone,
+      updatedAt: new Date(),
+      updatedBy: 0,
+    };
+  
+    // Check if email is provided and exists for a different user
+    if (data.email) {
+      User.findOne({
+        where: {
+          email: data.email,
+          id: { [Op.not]: req.params.id },
+        },
+      })
+        .then(existingUser => {
+          if (existingUser) {
+            return res.status(400).json({
+              message: 'Email already exists',
+            });
+          }
+  
+          // Continue with the update
+          performUpdate();
+        })
+        .catch(err => {
+          console.error('Database Error:', err);
+          res.status(500).json({
+            message: 'Something went wrong',
+            data: err,
+          });
         });
     } else {
-        // -- Create user jika email belum digunakan
-        // -- Data valid dan bisa disimpan kedalam database
-        User.update(data, {where : {id : req.params.id}}).then(result => {
-            res.status(200).json({
-                message : 'Success update data',
-                data: result
-            });
-        }).catch(err => {
-            res.status(500).json({
-                message : 'Updated Failed',
-                data: err
-            });
-        });               
-    }      
-    
-
-}
+      // No email provided, proceed with the update
+      performUpdate();
+    }
+  
+    // Function to perform the update
+    function performUpdate() {
+      User.update(data, { where: { id: req.params.id } })
+        .then(result => {
+          res.status(200).json({
+            message: 'Success update data',
+            data: result,
+          });
+        })
+        .catch(err => {
+          console.error('Update Error:', err);
+          res.status(500).json({
+            message: 'Update Failed',
+            data: err,
+          });
+        });
+    }
+  }  
 
 //DELETE USER
 function destroy(req,res, next){
@@ -177,53 +184,50 @@ function destroy(req,res, next){
 
 //SIGNIN USER
 function signin(req, res, next){
-    User.findOne({ where : {email : req.body.email} }).then(user => {
-        if(user){
-            if(user.isDeleted == false){
-                bcrypt.compare(req.body.password, user.password, function(err, result) {                    
-                    if (result)    {
-                         // Pembuatan TOKEN saat login sukses
-                        const token = jwt.sign({
-                            email : user.email,
-                            username : user.username,
-                            userid : user.id,
-                            role : user.role
-                        }, JWT_SECRET, function (err, token){
-                            res.status(200).json({
-                                status : "SUCCESS",
-                                message : 'Success login',
-                                token : token
-                            });      
-                        });
-                    } else {
-                        res.status(401).json({
-                            status : "FAILED",
-                            message : "Worng Password",
-                            data : err
-                        })
-                    }
-                })
+    const { username, email, password } = req.body;
 
-            } else {
-                res.status(401).json({
-                    message : 'User has been deleted',
-                data: user
-                });
-            }
+    // Choose either email or username for login
+    const loginField = email ? { email } : { username };
+
+    User.findOne({ where: loginField }).then(user => {
+        if (user && !user.isDeleted) {
+            bcrypt.compare(password, user.password, function(err, result) {                    
+                if (result)    {
+                    // Pembuatan TOKEN saat login sukses
+                    const token = jwt.sign({
+                        email: user.email,
+                        username: user.username,
+                        userid: user.id,
+                        role: user.role
+                    }, JWT_SECRET, function (err, token){
+                        res.status(200).json({
+                            status: "SUCCESS",
+                            message: 'Success login',
+                            token: token
+                        });      
+                    });
+                } else {
+                    res.status(401).json({
+                        status: "FAILED",
+                        message: "Wrong Password",
+                        data: err
+                    });
+                }
+            });
         } else {
             res.status(401).json({
-                message : 'Email not found',
-                data: user
+                message: 'User not found or has been deleted',
             });
         }
     }).catch(err => {
         res.status(500).json({
-            message : 'Login Failed',
+            message: 'Login Failed',
             data: err
         });
     });
-
 }
+
+
 
     module.exports = {
         signup,
