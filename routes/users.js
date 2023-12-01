@@ -7,7 +7,7 @@ const authMiddleware = require('../middlewares/auth');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/user/pictures'); // Destination folder for uploaded files
+    cb(null, 'uploads/users/pictures'); // Destination folder for uploaded files
   },
   filename: function (req, file, cb) {
     const ext = file.originalname.split('.').pop();
@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.get('/', authMiddleware.auth('user'), userController.read);
+router.get('/', userController.read);
 router.post('/signup', userController.signup);
 router.post('/signin', userController.signin);
 router.patch('/:id', authMiddleware.auth('user'), upload.single('picture'), userController.update);

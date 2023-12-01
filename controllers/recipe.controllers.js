@@ -8,11 +8,11 @@ const path = require('path');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/recipes/images/'); // Destination folder for uploaded files
+    cb(null, 'uploads/recipes/images/'); 
   },
   filename: function (req, file, cb) {
     const ext = file.originalname.split('.').pop();
-    cb(null, Date.now() + '-' + file.fieldname + '.' + ext); // Unique filename
+    cb(null, Date.now() + '-' + file.fieldname + '.' + ext);
   },
 });
 
@@ -40,13 +40,11 @@ function createRecipe(req, res, next) {
     const validationResult = v.validate(data, schema);
   
     if (validationResult !== true) {
-      // Data tidak valid
       res.status(400).json({
         message: "Validation Failed",
         data: validationResult,
       });
     } else {
-      // Create recipe jika data valid
       Recipe.create(data)
         .then((result) => {
           res.status(200).json({
@@ -125,7 +123,7 @@ function updateRecipe(req, res, next) {
     name: { type: "string", min: 5, max: 50, optional: true },
     ingredient: { type: "string", min: 5, max: 255, optional: true },
     category: { type: "string", min: 3, max: 50, optional: true },
-    image: { type: "string", optional: true } // Image bersifat opsional
+    image: { type: "string", optional: true } 
   };
 
   // VALIDASI DATA
@@ -193,7 +191,6 @@ function deleteRecipe(req, res, next) {
       });
   }
   
-
 module.exports = {
   createRecipe,
   readRecipes,
