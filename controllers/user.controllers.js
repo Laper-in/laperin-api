@@ -14,7 +14,7 @@ const path = require('path');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads/'); // Destination folder for uploaded files
+      cb(null, 'uploads/users/pictures'); // Destination folder for uploaded files
     },
     filename: function (req, file, cb) {
       const ext = file.originalname.split('.').pop();
@@ -100,65 +100,77 @@ function readbyid(req, res, next) {
 }
 //UPDATE USER
 function update(req, res, next) {
-    const data = {
-      password: req.body.password,
-      email: req.body.email,
-      fullname: req.body.fullname,
-      picture: req.file ? req.file.filename : req.body.picture,
-      alamat: req.body.alamat,
-      telephone: req.body.telephone,
-      updatedAt: new Date(),
-      updatedBy: 0,
-    };
+    bcrypt.genSalt(10, function (err, salt) {
+      bcrypt.hash(req.body.password, salt, function (err, hashedPassword) {
+        if (err) {
+          console.error('Hashing Error:', err);
+          return res.status(500).json({
+            message: 'Password hashing failed',
+            data: err,
+          });
+        }
   
-    // Check if email is provided and exists for a different user
-    if (data.email) {
-      User.findOne({
-        where: {
-          email: data.email,
-          id: { [Op.not]: req.params.id },
-        },
-      })
-        .then(existingUser => {
-          if (existingUser) {
-            return res.status(400).json({
-              message: 'Email already exists',
+        const data = {
+          password: hashedPassword,
+          email: req.body.email,
+          fullname: req.body.fullname,
+          picture: req.file ? req.file.filename : req.body.picture,
+          alamat: req.body.alamat,
+          telephone: req.body.telephone,
+          updatedAt: new Date(),
+          updatedBy: 0,
+        };
+  
+        // Check if email is provided and exists for a different user
+        if (data.email) {
+          User.findOne({
+            where: {
+              email: data.email,
+              id: { [Op.not]: req.params.id },
+            },
+          })
+            .then(existingUser => {
+              if (existingUser) {
+                return res.status(400).json({
+                  message: 'Email already exists',
+                });
+              }
+  
+              // Continue with the update
+              performUpdate();
+            })
+            .catch(err => {
+              console.error('Database Error:', err);
+              res.status(500).json({
+                message: 'Something went wrong',
+                data: err,
+              });
             });
-          }
-  
-          // Continue with the update
+        } else {
+          // No email provided, proceed with the update
           performUpdate();
-        })
-        .catch(err => {
-          console.error('Database Error:', err);
-          res.status(500).json({
-            message: 'Something went wrong',
-            data: err,
-          });
-        });
-    } else {
-      // No email provided, proceed with the update
-      performUpdate();
-    }
+        }
   
-    // Function to perform the update
-    function performUpdate() {
-      User.update(data, { where: { id: req.params.id } })
-        .then(result => {
-          res.status(200).json({
-            message: 'Success update data',
-            data: result,
-          });
-        })
-        .catch(err => {
-          console.error('Update Error:', err);
-          res.status(500).json({
-            message: 'Update Failed',
-            data: err,
-          });
-        });
-    }
-  }  
+        // Function to perform the update
+        function performUpdate() {
+          User.update(data, { where: { id: req.params.id } })
+            .then(result => {
+              res.status(200).json({
+                message: 'Success update data',
+                data: result,
+              });
+            })
+            .catch(err => {
+              console.error('Update Error:', err);
+              res.status(500).json({
+                message: 'Update Failed',
+                data: err,
+              });
+            });
+        }
+      });
+    });
+  }
 
 //DELETE USER
 function destroy(req,res, next){

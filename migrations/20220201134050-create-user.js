@@ -53,9 +53,11 @@ module.exports = {
         type: Sequelize.DATE,
       },
       isDeleted: {
+        allowNull: false,
         type: Sequelize.BOOLEAN,
       },
       isPro: {
+        allowNull: false,
         type: Sequelize.BOOLEAN,
       },
     });
