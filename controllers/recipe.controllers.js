@@ -3,6 +3,20 @@ const { Recipe } = require("../models");
 const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const v = new Validator();
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/recipes/images/'); // Destination folder for uploaded files
+  },
+  filename: function (req, file, cb) {
+    const ext = file.originalname.split('.').pop();
+    cb(null, Date.now() + '-' + file.fieldname + '.' + ext); // Unique filename
+  },
+});
+
+
 
 // CREATE RECIPE
 function createRecipe(req, res, next) {
@@ -11,14 +25,14 @@ function createRecipe(req, res, next) {
       name: req.body.name,
       ingredient: req.body.ingredient,
       category: req.body.category,
-      image: req.body.image, // Tambah kolom image
+      image: req.file ? req.file.filename : req.body.image,
       createdAt: new Date(),
     };
   
     const schema = {
-      name: { type: "string", min: 5, max: 50, optional: false },
-      ingredient: { type: "string", min: 5, max: 255, optional: false },
-      category: { type: "string", min: 3, max: 50, optional: false },
+      name: { type: "string", min: 5, max: 50, optional: true },
+      ingredient: { type: "string", min: 5, max: 255, optional: true },
+      category: { type: "string", min: 3, max: 50, optional: true },
       image: { type: "string", optional: true } // Image bersifat opsional
     };
   
@@ -103,14 +117,14 @@ function updateRecipe(req, res, next) {
     name: req.body.name,
     ingredient: req.body.ingredient,
     category: req.body.category,
-    image: req.body.image, // Tambah kolom image
+    image: req.file ? req.file.filename : req.body.image,
     updatedAt: new Date(),
   };
 
   const schema = {
-    name: { type: "string", min: 5, max: 50, optional: false },
-    ingredient: { type: "string", min: 5, max: 255, optional: false },
-    category: { type: "string", min: 3, max: 50, optional: false },
+    name: { type: "string", min: 5, max: 50, optional: true },
+    ingredient: { type: "string", min: 5, max: 255, optional: true },
+    category: { type: "string", min: 3, max: 50, optional: true },
     image: { type: "string", optional: true } // Image bersifat opsional
   };
 

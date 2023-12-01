@@ -4,8 +4,8 @@ const dotenv = require('dotenv');
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-function auth(requiredRole) {
-    return function(req, res, next) {
+function auth() {
+    return function (req, res, next) {
         const authHeader = req.headers.authorization;
 
         if (authHeader) {
@@ -19,13 +19,13 @@ function auth(requiredRole) {
                     });
                 }
 
-                // Pemeriksaan peran pengguna dan ID yang diminta
-                if (user && user.role === requiredRole && (req.params.id === user.userid.toString())) {
+                // Check if the user is trying to update their own information
+                if (user && req.params.id === user.userid.toString()) {
                     req.user = user;
                     next();
                 } else {
                     return res.status(403).json({
-                        message: "Unauthorized. Insufficient role or invalid ID."
+                        message: "Unauthorized. You can only update your own information."
                     });
                 }
             });
