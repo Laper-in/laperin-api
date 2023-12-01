@@ -1,61 +1,63 @@
 'use strict';
+const { nanoid } = require('nanoid');
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Users', {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING(10),
+        defaultValue: () => nanoid(10),
       },
       username: {
-        type: Sequelize.STRING(50)
+        type: Sequelize.STRING(50),
       },
       email: {
-        type: Sequelize.STRING(100)
+        type: Sequelize.STRING(100),
       },
       fullname: {
-        type: Sequelize.STRING(100)
+        type: Sequelize.STRING(100),
       },
       password: {
-        type: Sequelize.STRING(255)
+        type: Sequelize.STRING(255),
       },
       picture: {
-        type: Sequelize.STRING(100)
+        type: Sequelize.STRING(100),
       },
       alamat: {
-        type: Sequelize.STRING(255)
+        type: Sequelize.STRING(255),
       },
       telephone: {
-        type: Sequelize.INTEGER(20)
+        type: Sequelize.INTEGER(20),
       },
       role: {
         type: Sequelize.STRING(10),
-        defaultValue: 'user'
+        defaultValue: 'user',
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedBy: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       deletedBy: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       deletedAt: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       isDeleted: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
       },
       isPro: {
-        type: Sequelize.BOOLEAN
-      }
+        type: Sequelize.BOOLEAN,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
