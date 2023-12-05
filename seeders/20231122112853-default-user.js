@@ -4,13 +4,13 @@ const { nanoid } = require('nanoid');
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const hashedPassword = await bcrypt.hash('admin', 10);
+    const hashedPassword = await bcrypt.hash('kamusiapa?!', 10);
     const userId = nanoid(10); // Generate a unique ID using nanoid
 
     await queryInterface.bulkInsert('Users', [
       {
         id: userId,
-        username: 'admin',
+        username: 'Adminsrotor',
         email: 'admin@gmail.com',
         fullname: 'admin',
         password: hashedPassword,
