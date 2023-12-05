@@ -20,6 +20,12 @@ module.exports = {
       category: {
         type: Sequelize.STRING
       },
+      guide: {
+        type: Sequelize.STRING
+      },
+      urlVideo: {
+        type: Sequelize.STRING
+      },
       image: { 
         type: Sequelize.STRING
       },

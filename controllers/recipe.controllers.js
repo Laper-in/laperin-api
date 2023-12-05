@@ -47,15 +47,19 @@ function createRecipe(req, res, next) {
       name: req.body.name,
       ingredient: req.body.ingredient,
       category: req.body.category,
+      guide : req.body.guide,
+      urlVideo: req.body.urlVideo,
       image: req.file ? req.file.filename : req.body.image,
       createdAt: new Date(),
     };
   
     const schema = {
-      name: { type: "string", min: 5, max: 50, optional: true },
-      ingredient: { type: "string", min: 5, max: 255, optional: true },
+      name: { type: "string", min: 5, max: 50, optional: false },
+      ingredient: { type: "string", min: 5, max: 1200, optional: true },
       category: { type: "string", min: 3, max: 50, optional: true },
-      image: { type: "string", optional: true } // Image bersifat opsional
+      guide: { type: "string", min: 5, max: 1200, optional: true},
+      urlVideo: {type: "string", min: 5, max: 255, optional: true},
+      image: { type: "string", optional: true }
     };
   
     // VALIDASI DATA
@@ -142,15 +146,19 @@ function updateRecipe(req, res, next) {
     name: req.body.name,
     ingredient: req.body.ingredient,
     category: req.body.category,
+    guide : req.body.guide,
+      urlVideo: req.body.urlVideo,
     image: req.file ? req.file.filename : req.body.image,
     updatedAt: new Date(),
   };
 
   const schema = {
-    name: { type: "string", min: 5, max: 50, optional: true },
+    name: { type: "string", min: 5, max: 50, optional: false },
     ingredient: { type: "string", min: 5, max: 255, optional: true },
     category: { type: "string", min: 3, max: 50, optional: true },
-    image: { type: "string", optional: true } 
+    guide: { type: "string", min: 5, max: 255, optional: true},
+    urlVideo: {type: "string", min: 5, max: 255, optional: true},
+    image: { type: "string", optional: true }
   };
 
   // VALIDASI DATA

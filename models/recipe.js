@@ -14,10 +14,10 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       defaultValue: () => nanoid(10) // 10 karakter id
     },
-    name: DataTypes.STRING,
-    ingredient: DataTypes.STRING,
-    category: DataTypes.STRING,
-    image: DataTypes.STRING 
+    name: DataTypes.STRING(50) ,
+    ingredient: DataTypes.STRING(1200),
+    category: DataTypes.STRING(20),
+    image: DataTypes.STRING(50) 
   }, {
     sequelize,
     modelName: 'Recipe',
