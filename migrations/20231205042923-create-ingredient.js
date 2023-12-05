@@ -10,9 +10,6 @@
           type: Sequelize.STRING,
           defaultValue: nanoid(10)
         },
-        id: {
-          type: Sequelize.STRING
-        },
         name: {
           type: Sequelize.STRING
         },

@@ -35,7 +35,7 @@ const upload = multer({
   },
 });
 
-router.get('/', userController.read);
+router.get('/',authMiddleware.auth('admin'), userController.read);
 router.post('/signup', userController.signup);
 router.post('/signin', userController.signin);
 router.patch('/:id', authMiddleware.auth('user'), upload.single('picture'), userController.update);
