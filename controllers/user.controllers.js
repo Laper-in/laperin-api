@@ -11,18 +11,17 @@ require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
 const multer = require('multer');
 const path = require('path');
+const paginate = require('sequelize-paginate');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, 'uploads/users/pictures'); // Destination folder for uploaded files
     },
     filename: function (req, file, cb) {
-      const ext = file.originalname.split('.').pop();
+    const ext = file.originalname.split('.').pop();
       cb(null, Date.now() + '-' + file.fieldname + '.' + ext); // Unique filename
     },
-  });
-  
-
+});
 
 // CREATE USER
 function signup(req, res, next) {
@@ -36,14 +35,11 @@ function signup(req, res, next) {
                 fullname: req.body.fullname,
                 createdAt: new Date(),
             };
-
             const schema = {
                 username: { type: 'string', min: 5, max: 50, optional: false },
                 email: { type: 'email', optional: false },
                 password: { type: 'string', min: 5, max: 255, optional: false },
             };
-
-            // Validate if the email and username are unique
             Promise.all([
                 User.findOne({ where: { email: req.body.email } }),
                 User.findOne({ where: { username: req.body.username } }),
@@ -59,7 +55,6 @@ function signup(req, res, next) {
                         });
                     } else {
                         const validationResult = v.validate(data, schema);
-
                         if (validationResult !== true) {
                             res.status(400).json({
                                 message: 'Validation Failed',
@@ -92,13 +87,26 @@ function signup(req, res, next) {
     });
 }
 //READ USER
-function read(req, res, next){
-    User.findAll({
-        where : {isDeleted : false}
-    }).then(users => {  
-        res.send(users);
-    }).catch(err => {
-        res.send(err);
+function read(req, res, next) {
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 10;
+    User.paginate({
+    page: page,
+    paginate: pageSize,
+    where: { isDeleted: false },
+})
+    .then((result) => {
+    const response = {
+        users: result.docs,
+        total_count: result.total,
+        total_pages: result.pages,
+        current_page: result.page,
+    };
+
+    res.send(response);
+    })
+    .catch((err) => {
+    res.status(500).send(err);
     });
 }
 
@@ -182,7 +190,7 @@ function update(req, res, next) {
         }
       });
     });
-  }
+}
 
 //DELETE USER
 function destroy(req,res, next){
@@ -253,50 +261,60 @@ function signin(req, res, next){
 
 // SEARCH username BY NAME
 function searchByusername(req, res, next) {
-    const searchTerm = req.query.q; // Ambil nilai query parameter q
+    const searchTerm = req.query.q;
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 10;
+
     if (!searchTerm) {
-      return res.status(400).json({
+    return res.status(400).json({
         message: "Search term is required",
         data: null,
-      });
+    });
     }
-  
-    User.findAll({
-      where: {
+
+    User.paginate({
+    page: page,
+    paginate: pageSize,
+    where: {
         username: {
-          [Op.like]: `%${searchTerm}%`, // Gunakan operator LIKE pada Sequelize
+        [Op.like]: `%${searchTerm}%`,
         },
-      },
+    },
     })
-      .then((users) => {
-        if (users.length === 0) {
-          res.status(404).json({ // Jika tidak ada user yang ditemukan
-            message: "User not found", 
+    .then((result) => {
+        const response = {
+        users: result.docs,
+        total_count: result.total,
+        total_pages: result.pages,
+        current_page: result.page,
+        };
+        if (result.docs.length === 0) {
+        res.status(404).json({
+            message: "User not found",
             data: null,
-          });
-        } else {
-          res.status(200).json({ // Jika ada user yang ditemukan
-            message: "Success",
-            data: users, 
-          });
-        }
-      })
-      .catch((err) => {
-        res.status(500).json({ // Jika terjadi error
-          message: "Search By Name Failed", 
-          data: err,
         });
-      });
+        } else {
+        res.status(200).json({
+            message: "Success",
+            data: response,
+        });
+        }
+    })
+    .catch((err) => {
+        res.status(500).json({
+        message: "Search By Name Failed",
+        data: err,
+        });
+    });
 }
 
-
-
-    module.exports = {
-        signup,
+paginate.paginate(User);
+module.exports = {
+         signup,
         read,
         update,
         destroy,
         signin,
         readbyid,
         searchByusername,
-    };
+};

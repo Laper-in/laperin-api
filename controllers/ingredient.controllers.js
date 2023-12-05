@@ -41,8 +41,8 @@ function createIngredient(req, res, next) {
           });
         });
     }
-  }
-  
+}
+
 // READ ALL INGREDIENTS
 function readIngredients(req, res, next) {
   Ingredient.findAll()
@@ -197,8 +197,8 @@ function searchIngredientByName(req, res, next) {
           data: err,
         });
       });
-  }
-  
+}
+
 
 module.exports = {
   createIngredient,
