@@ -21,5 +21,6 @@ router.get('/', recipeController.readRecipes);
 router.get('/:id', recipeController.readRecipeById);
 router.patch('/:id', upload.single('image'), recipeController.updateRecipe);
 router.delete('/:id', recipeController.deleteRecipe);
+router.get('/search/name', recipeController.searchRecipeByName);
 
 module.exports = router;

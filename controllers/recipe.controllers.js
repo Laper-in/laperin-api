@@ -3,6 +3,7 @@ const { Recipe } = require("../models");
 const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const v = new Validator();
+const { Op } = require("sequelize");
 const multer = require('multer');
 
 
@@ -190,6 +191,46 @@ function deleteRecipe(req, res, next) {
         });
       });
   }
+
+ // SEARCH RECIPE BY NAME
+function searchRecipeByName(req, res, next) {
+  const searchTerm = req.query.q; // Ambil nilai query parameter q
+  if (!searchTerm) {
+    return res.status(400).json({
+      message: "Search term is required",
+      data: null,
+    });
+  }
+
+  Recipe.findAll({
+    where: {
+      name: {
+        [Op.like]: `%${searchTerm}%`, // Gunakan operator LIKE pada Sequelize
+      },
+    },
+  })
+    .then((recipes) => {
+      if (recipes.length === 0) {
+        res.status(404).json({ // Jika tidak ada recipe yang ditemukan
+          message: "Recipes not found", 
+          data: null,
+        });
+      } else {
+        res.status(200).json({ // Jika ada recipe yang ditemukan
+          message: "Success",
+          data: recipes,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ // Jika terjadi error
+        message: "Search Recipe By Name Failed", 
+        data: err,
+      });
+    });
+}
+  
+
   
 module.exports = {
   createRecipe,
@@ -197,4 +238,5 @@ module.exports = {
   readRecipeById,
   updateRecipe,
   deleteRecipe,
+  searchRecipeByName,
 };
