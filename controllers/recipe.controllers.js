@@ -5,6 +5,7 @@ const Validator = require("fastest-validator");
 const v = new Validator();
 const { Op } = require("sequelize");
 const multer = require('multer');
+const paginate = require('sequelize-paginate');
 
 
 const storage = multer.diskStorage({
@@ -65,19 +66,25 @@ function createRecipe(req, res, next) {
 
 // READ ALL RECIPES
 function readRecipes(req, res, next) {
-  Recipe.findAll()
-    .then((recipes) => {
-      res.status(200).json({
-        message: "Success",
-        data: recipes,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        message: "Read Recipes Failed",
-        data: err,
-      });
-    });
+  const page = parseInt(req.query.page, 10) || 1;
+  const pageSize = parseInt(req.query.pageSize, 10) || 10;
+  Recipe.paginate({
+  page: page,
+  paginate: pageSize,
+})
+  .then((result) => {
+  const response = {
+      recipe: result.docs,
+      total_count: result.total,
+      total_pages: result.pages,
+      current_page: result.page,
+  };
+
+  res.send(response);
+  })
+  .catch((err) => {
+  res.status(500).send(err);
+  });
 }
 
 // READ RECIPE BY ID
@@ -193,43 +200,54 @@ function deleteRecipe(req, res, next) {
 
  // SEARCH RECIPE BY NAME
 function searchRecipeByName(req, res, next) {
-  const searchTerm = req.query.q; // Ambil nilai query parameter q
+  const searchTerm = req.query.q;
+  const page = parseInt(req.query.page, 10) || 1;
+  const pageSize = parseInt(req.query.pageSize, 10) || 10;
+
   if (!searchTerm) {
-    return res.status(400).json({
+  return res.status(400).json({
       message: "Search term is required",
       data: null,
-    });
+  });
   }
 
-  Recipe.findAll({
-    where: {
+  Recipe.paginate({
+  page: page,
+  paginate: pageSize,
+  where: {
       name: {
-        [Op.like]: `%${searchTerm}%`, // Gunakan operator LIKE pada Sequelize
+      [Op.like]: `%${searchTerm}%`,
       },
-    },
+  },
   })
-    .then((recipes) => {
-      if (recipes.length === 0) {
-        res.status(404).json({ // Jika tidak ada recipe yang ditemukan
-          message: "Recipes not found", 
+  .then((result) => {
+      const response = {
+      users: result.docs,
+      total_count: result.total,
+      total_pages: result.pages,
+      current_page: result.page,
+      };
+      if (result.docs.length === 0) {
+      res.status(404).json({
+          message: "Recipe not found",
           data: null,
-        });
-      } else {
-        res.status(200).json({ // Jika ada recipe yang ditemukan
-          message: "Success",
-          data: recipes,
-        });
-      }
-    })
-    .catch((err) => {
-      res.status(500).json({ // Jika terjadi error
-        message: "Search Recipe By Name Failed", 
-        data: err,
       });
-    });
+      } else {
+      res.status(200).json({
+          message: "Success",
+          data: response,
+      });
+      }
+  })
+  .catch((err) => {
+      res.status(500).json({
+      message: "Search By recipe Failed",
+      data: err,
+      });
+  });
 }
   
-
+paginate.paginate(Recipe);
   
 module.exports = {
   createRecipe,
