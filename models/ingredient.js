@@ -2,7 +2,7 @@
 const {Model} = require('sequelize');
 const { nanoid } = require('nanoid');
 module.exports = (sequelize, DataTypes) => {
-  class ingredient extends Model {
+  class Ingredient extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -12,16 +12,16 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  ingredient.init({
+  Ingredient.init({
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
       defaultValue: () => nanoid(10) // 10 karakter id
     },
-    ingredient: DataTypes.STRING
+    name: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'ingredient',
+    modelName: 'Ingredient',
   });
-  return ingredient;
+  return Ingredient;
 };

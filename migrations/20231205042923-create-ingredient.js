@@ -1,4 +1,5 @@
 'use strict';
+const { nanoid } = require('nanoid');
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -12,7 +13,7 @@ module.exports = {
       id: {
         type: Sequelize.STRING
       },
-      ingredient: {
+      name: {
         type: Sequelize.STRING
       },
       createdAt: {

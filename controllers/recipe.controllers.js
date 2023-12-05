@@ -4,7 +4,7 @@ const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const v = new Validator();
 const multer = require('multer');
-const path = require('path');
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
