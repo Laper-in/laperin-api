@@ -8,5 +8,6 @@ router.post('/', ingredientController.createIngredient);
 router.get('/:id', ingredientController.readIngredientById);
 router.patch('/:id', ingredientController.updateIngredient);
 router.delete('/:id', ingredientController.deleteIngredient);
+router.get('/search/name', ingredientController.searchIngredientByName);
 
 module.exports = router;

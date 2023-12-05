@@ -2,6 +2,7 @@ const express = require("express");
 const { Ingredient } = require("../models");
 const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
+const { Op } = require("sequelize");
 const v = new Validator();
 
 // CREATE INGREDIENT
@@ -160,10 +161,50 @@ function deleteIngredient(req, res, next) {
     });
 }
 
+// SEARCH INGREDIENT BY NAME
+function searchIngredientByName(req, res, next) {
+    const searchTerm = req.query.q; // Ambil nilai query parameter q
+    if (!searchTerm) {
+      return res.status(400).json({
+        message: "Search term is required",
+        data: null,
+      });
+    }
+  
+    Ingredient.findAll({
+      where: {
+        name: {
+          [Op.like]: `%${searchTerm}%`, // Gunakan operator LIKE pada Sequelize
+        },
+      },
+    })
+      .then((ingredients) => {
+        if (ingredients.length === 0) {
+          res.status(404).json({ // Jika tidak ada Ingredient yang ditemukan
+            message: "Ingredient not found", 
+            data: null,
+          });
+        } else {
+          res.status(200).json({ // Jika ada Ingredient yang ditemukan
+            message: "Success",
+            data: ingredients, // Fix typo: Change Ingredient to ingredients
+          });
+        }
+      })
+      .catch((err) => {
+        res.status(500).json({ // Jika terjadi error
+          message: "Search By Name Failed", 
+          data: err,
+        });
+      });
+  }
+  
+
 module.exports = {
   createIngredient,
   readIngredients,
   readIngredientById,
   updateIngredient,
   deleteIngredient,
+  searchIngredientByName,
 };
