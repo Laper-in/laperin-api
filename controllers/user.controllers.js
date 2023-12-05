@@ -239,6 +239,44 @@ function signin(req, res, next){
     });
 }
 
+// SEARCH username BY NAME
+function searchByusername(req, res, next) {
+    const searchTerm = req.query.q; // Ambil nilai query parameter q
+    if (!searchTerm) {
+      return res.status(400).json({
+        message: "Search term is required",
+        data: null,
+      });
+    }
+  
+    User.findAll({
+      where: {
+        username: {
+          [Op.like]: `%${searchTerm}%`, // Gunakan operator LIKE pada Sequelize
+        },
+      },
+    })
+      .then((users) => {
+        if (users.length === 0) {
+          res.status(404).json({ // Jika tidak ada user yang ditemukan
+            message: "User not found", 
+            data: null,
+          });
+        } else {
+          res.status(200).json({ // Jika ada user yang ditemukan
+            message: "Success",
+            data: users, 
+          });
+        }
+      })
+      .catch((err) => {
+        res.status(500).json({ // Jika terjadi error
+          message: "Search By Name Failed", 
+          data: err,
+        });
+      });
+}
+
 
 
     module.exports = {
@@ -247,5 +285,6 @@ function signin(req, res, next){
         update,
         destroy,
         signin,
-        readbyid
+        readbyid,
+        searchByusername,
     };
