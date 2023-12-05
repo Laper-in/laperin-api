@@ -4,6 +4,7 @@ const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const { Op } = require("sequelize");
 const v = new Validator();
+const paginate = require('sequelize-paginate');
 
 // CREATE INGREDIENT
 function createIngredient(req, res, next) {
@@ -45,18 +46,24 @@ function createIngredient(req, res, next) {
 
 // READ ALL INGREDIENTS
 function readIngredients(req, res, next) {
-  Ingredient.findAll()
-    .then((ingredients) => {
-      res.status(200).json({
-        message: "Success",
-        data: ingredients,
-      });
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 10;
+    Ingredient.paginate({
+    page: page,
+    paginate: pageSize,
+})
+    .then((result) => {
+    const response = {
+        recipe: result.docs,
+        total_count: result.total,
+        total_pages: result.pages,
+        current_page: result.page,
+    };
+
+    res.send(response);
     })
     .catch((err) => {
-      res.status(500).json({
-        message: "Read Ingredients Failed",
-        data: err,
-      });
+    res.status(500).send(err);
     });
 }
 
@@ -163,42 +170,52 @@ function deleteIngredient(req, res, next) {
 
 // SEARCH INGREDIENT BY NAME
 function searchIngredientByName(req, res, next) {
-    const searchTerm = req.query.q; // Ambil nilai query parameter q
+    const searchTerm = req.query.q;
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 10;
     if (!searchTerm) {
-      return res.status(400).json({
+    return res.status(400).json({
         message: "Search term is required",
         data: null,
-      });
+    });
     }
-  
-    Ingredient.findAll({
-      where: {
+    Ingredient.paginate({
+    page: page,
+    paginate: pageSize,
+    where: {
         name: {
-          [Op.like]: `%${searchTerm}%`, // Gunakan operator LIKE pada Sequelize
+        [Op.like]: `%${searchTerm}%`,
         },
-      },
+    },
     })
-      .then((ingredients) => {
-        if (ingredients.length === 0) {
-          res.status(404).json({ // Jika tidak ada Ingredient yang ditemukan
-            message: "Ingredient not found", 
+    .then((result) => {
+        const response = {
+        users: result.docs,
+        total_count: result.total,
+        total_pages: result.pages,
+        current_page: result.page,
+        };
+        if (result.docs.length === 0) {
+        res.status(404).json({
+            message: "Recipe not found",
             data: null,
-          });
-        } else {
-          res.status(200).json({ // Jika ada Ingredient yang ditemukan
-            message: "Success",
-            data: ingredients, // Fix typo: Change Ingredient to ingredients
-          });
-        }
-      })
-      .catch((err) => {
-        res.status(500).json({ // Jika terjadi error
-          message: "Search By Name Failed", 
-          data: err,
         });
-      });
+        } else {
+        res.status(200).json({
+            message: "Success",
+            data: response,
+        });
+        }
+    })
+    .catch((err) => {
+        res.status(500).json({
+        message: "Search By Ingredient Failed",
+        data: err,
+        });
+    });
 }
 
+paginate.paginate(Ingredient);
 
 module.exports = {
   createIngredient,
