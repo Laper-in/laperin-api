@@ -24,10 +24,10 @@ const storage = multer.diskStorage({
   
 
 
-//CREATE USER
-function signup(req, res, next){
-    bcrypt.genSalt(10, function(err, salt) {
-        bcrypt.hash(req.body.password, salt, function(err, hash) {
+// CREATE USER
+function signup(req, res, next) {
+    bcrypt.genSalt(10, function (err, salt) {
+        bcrypt.hash(req.body.password, salt, function (err, hash) {
             const data = {
                 id: nanoid(10), // Use nanoid for generating ID
                 username: req.body.username,
@@ -36,49 +36,61 @@ function signup(req, res, next){
                 fullname: req.body.fullname,
                 createdAt: new Date(),
             };
-        
+
             const schema = {
-                username: { type: "string", min: 5, max: 50, optional: false },
-                email: { type: "email", optional: false },
-                password: { type: "string", min: 5, max: 255, optional: false },
+                username: { type: 'string', min: 5, max: 50, optional: false },
+                email: { type: 'email', optional: false },
+                password: { type: 'string', min: 5, max: 255, optional: false },
             };
-        
-            User.findOne({ where: { email: req.body.email } }).then(user => {
-                if(user){
-                    res.status(400).json({
-                        message: 'Email already exists',
-                    });
-                } else {
-                    const validationResult = v.validate(data, schema);
-        
-                    if (validationResult !== true) {
+
+            // Validate if the email and username are unique
+            Promise.all([
+                User.findOne({ where: { email: req.body.email } }),
+                User.findOne({ where: { username: req.body.username } }),
+            ])
+                .then(([existingEmailUser, existingUsernameUser]) => {
+                    if (existingEmailUser) {
                         res.status(400).json({
-                            message: 'Validation Failed',
-                            data: validationResult,
+                            message: 'Email already exists',
+                        });
+                    } else if (existingUsernameUser) {
+                        res.status(400).json({
+                            message: 'Username already exists',
                         });
                     } else {
-                        User.create(data).then(result => {
-                            res.status(200).json({
-                                message: 'Success',
-                                data: result,
+                        const validationResult = v.validate(data, schema);
+
+                        if (validationResult !== true) {
+                            res.status(400).json({
+                                message: 'Validation Failed',
+                                data: validationResult,
                             });
-                        }).catch(err => {
-                            res.status(500).json({
-                                message: 'Register Failed',
-                                data: err,
-                            });
-                        });                
-                    }            
-                }
-            }).catch(err => {
-                res.status(500).json({
-                    message: 'Something went wrong',
-                    data: err,
-                });        
-            });
+                        } else {
+                            User.create(data)
+                                .then((result) => {
+                                    res.status(200).json({
+                                        message: 'Success',
+                                        data: result,
+                                    });
+                                })
+                                .catch((err) => {
+                                    res.status(500).json({
+                                        message: 'Register Failed',
+                                        data: err,
+                                    });
+                                });
+                        }
+                    }
+                })
+                .catch((err) => {
+                    res.status(500).json({
+                        message: 'Something went wrong',
+                        data: err,
+                    });
+                });
         });
     });
-}  
+}
 //READ USER
 function read(req, res, next){
     User.findAll({
