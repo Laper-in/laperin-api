@@ -162,70 +162,93 @@
         res.send(err);
         });
     }
-    //UPDATE USER
-    function update(req, res, next) {
-    bcrypt.genSalt(10, function (err, salt) {
-        bcrypt.hash(req.body.password, salt, function (err, hashedPassword) {
-        if (err) {
-            console.error("Hashing Error:", err);
-            return res.status(500).json({
-            message: "Password hashing failed",
-            data: err,
+// UPDATE USER
+// UPDATE USER
+function update(req, res, next) {
+    const data = {
+        email: req.body.email,
+        fullname: req.body.fullname,
+        picture: req.file ? req.file.filename : req.body.picture,
+        alamat: req.body.alamat,
+        telephone: req.body.telephone,
+        updatedAt: new Date(),
+        updatedBy: 0,
+    };
+
+    // Check if the password field is provided
+    if (req.body.password) {
+        bcrypt.genSalt(10, function (err, salt) {
+            if (err) {
+                console.error("Salt Generation Error:", err);
+                return next(err); // Stop further execution on salt generation error
+            }
+
+            bcrypt.hash(req.body.password, salt, function (err, hashedPassword) {
+                if (err) {
+                    console.error("Hashing Error:", err);
+                    return res.status(500).json({
+                        message: "Password hashing failed",
+                        data: err,
+                    });
+                }
+
+                data.password = hashedPassword; // Set the hashed password in the data object
+
+                // Continue with the validation and update
+                validateAndUpdate();
             });
-        }
-        const data = {
-            password: hashedPassword,
-            email: req.body.email,
-            fullname: req.body.fullname,
-            picture: req.file ? req.file.filename : req.body.picture,
-            alamat: req.body.alamat,
-            telephone: req.body.telephone,
-            updatedAt: new Date(),
-            updatedBy: 0,
-        };
+        });
+    } else {
+        // No password provided, proceed with the validation and update
+        validateAndUpdate();
+    }
+
+    // Function to perform the validation and update
+    function validateAndUpdate() {
         const schema = {
-            email: { type: "email", optional: false },
+            email: { type: "email", optional: true },
+            password: { type: "string", min: 5, max: 255, optional: true },
         };
+
         const validationResult = v.validate(data, schema);
         if (validationResult !== true) {
-            res.status(400).json({
-            message: "Validation Failed",
-            data: validationResult,
+            return res.status(400).json({
+                message: "Validation Failed",
+                data: validationResult,
             });
-            return;
         }
+
         // Check if email is provided and exists for a different user
         if (data.email) {
             // Additional validation for email domain
             if (!/\b(?:gmail\.com|yahoo\.com|example\.com)\b/.test(data.email)) {
-            res.status(400).json({
-                message:
-                "Invalid email domain. Supported domains: gmail.com, yahoo.com, example.com",
-            });
-            return;
-            }
-            User.findOne({
-            where: {
-                email: data.email,
-                id: { [Op.not]: req.params.id },
-            },
-            })
-            .then((existingUser) => {
-                if (existingUser) {
                 return res.status(400).json({
-                    message: "Email already exists",
+                    message: "Invalid email domain. Supported domains: gmail.com, yahoo.com, example.com",
                 });
-                }
-                // Continue with the update
-                performUpdate();
+            }
+
+            User.findOne({
+                where: {
+                    email: data.email,
+                    id: { [Op.not]: req.params.id },
+                },
             })
-            .catch((err) => {
-                console.error("Database Error:", err);
-                res.status(500).json({
-                message: "Something went wrong",
-                data: err,
+                .then((existingUser) => {
+                    if (existingUser) {
+                        return res.status(400).json({
+                            message: "Email already exists",
+                        });
+                    }
+                    // Continue with the update
+                    performUpdate();
+                })
+                .catch((err) => {
+                    console.error("Database Error:", err);
+                    return res.status(500).json({
+                        message: "Something went wrong",
+                        data: err,
+                    });
                 });
-            });
         } else {
             // No email provided, proceed with the update
             performUpdate();
@@ -234,23 +257,24 @@
         // Function to perform the update
         function performUpdate() {
             User.update(data, { where: { id: req.params.id } })
-            .then((result) => {
-                res.status(200).json({
-                message: "Success update data",
-                data: result,
+                .then((result) => {
+                    res.status(200).json({
+                        message: "Success update data",
+                        data: result,
+                    });
+                })
+                .catch((err) => {
+                    console.error("Update Error:", err);
+                    res.status(500).json({
+                        message: "Update Failed",
+                        data: err,
+                    });
                 });
-            })
-            .catch((err) => {
-                console.error("Update Error:", err);
-                res.status(500).json({
-                message: "Update Failed",
-                data: err,
-                });
-            });
         }
-        });
-    });
     }
+}
+
+
 
     //DELETE USER
     function destroy(req, res, next) {
