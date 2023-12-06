@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users');
 var recipesRouter = require('./routes/recipes');
 var ingredientRouter = require('./routes/ingredients');
 var bookmarkRouter = require('./routes/bookmarks');
+var donationRouter = require('./routes/donations');
 
 
 
@@ -29,6 +30,7 @@ app.use('/users', usersRouter);
 app.use('/recipes', recipesRouter);
 app.use('/ingredients', ingredientRouter);
 app.use('/bookmarks', bookmarkRouter);
+app.use('/donations', donationRouter);
 
 
 // catch 404 and forward to error handler
