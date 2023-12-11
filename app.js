@@ -32,6 +32,9 @@ app.use('/ingredients', ingredientRouter);
 app.use('/bookmarks', bookmarkRouter);
 app.use('/donations', donationRouter);
 
+// console.log('GCLOUD_PROJECT:', process.env.GCLOUD_PROJECT);
+// console.log('GCS_KEYFILE:', process.env.GCS_KEYFILE);
+// console.log('GCS_BUCKET:', process.env.GCS_BUCKET);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
