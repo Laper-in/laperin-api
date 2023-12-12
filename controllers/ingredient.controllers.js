@@ -1,5 +1,5 @@
     const express = require("express");
-    const { Ingredient } = require("../models");
+    const { ingredient } = require("../models");
     const { nanoid } = require("nanoid");
     const Validator = require("fastest-validator");
     const { Op } = require("sequelize");
@@ -203,7 +203,7 @@
         });
         });
     }
-    paginate.paginate(Ingredient);
+    paginate.paginate(ingredient);
     module.exports = {
     createIngredient,
     readIngredients,

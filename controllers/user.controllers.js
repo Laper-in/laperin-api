@@ -1,5 +1,5 @@
 const e = require("express");
-const { User } = require("../models");
+const { user } = require("../models");
 const { uploadToBucket } = require("../middlewares/gcsMiddleware");
 require("dotenv").config();
 const { nanoid } = require("nanoid");
@@ -442,7 +442,7 @@ function searchByusername(req, res, next) {
       });
     });
 }
-paginate.paginate(User);
+paginate.paginate(user);
 module.exports = {
   signup,
   read,

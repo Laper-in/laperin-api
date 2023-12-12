@@ -1,4 +1,4 @@
-    const { Bookmark } = require("../models");
+    const { bookmark } = require("../models");
     const { nanoid } = require("nanoid");
     const Validator = require("fastest-validator");
     const v = new Validator();
@@ -127,7 +127,7 @@
         });
     }
 
-    paginate.paginate(Bookmark);
+    paginate.paginate(bookmark);
 
     module.exports = {
     createBookmark,

@@ -1,5 +1,5 @@
   const express = require("express");
-  const { Recipe } = require("../models");
+  const { recipe } = require("../models");
   const { nanoid } = require("nanoid");
   const Validator = require("fastest-validator");
   const v = new Validator();
@@ -272,7 +272,7 @@
       });
   }
 
-  paginate.paginate(Recipe);
+  paginate.paginate(recipe);
 
   module.exports = {
     createRecipe,

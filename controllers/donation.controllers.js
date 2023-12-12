@@ -1,4 +1,4 @@
-const { Donation } = require("../models");
+const { donation } = require("../models");
 const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const v = new Validator();
@@ -284,7 +284,7 @@ function deleteDonation(req, res, next) {
     
 }
 
-paginate.paginate(Donation);
+paginate.paginate(donation);
 
 module.exports = {
     createDonation,
