@@ -1,4 +1,3 @@
-// Contoh penggunaan di userMiddleware.js
 const { uploadToBucket } = require("../middlewares/gcsMiddleware");
 const userController = require("../controllers/user.controllers");
 

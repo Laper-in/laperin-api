@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     image: DataTypes.STRING(255),
     lon: DataTypes.FLOAT,
     lat: DataTypes.FLOAT,
+    isPro: DataTypes.BOOLEAN,
   }, {
     sequelize,
     modelName: 'Donation',

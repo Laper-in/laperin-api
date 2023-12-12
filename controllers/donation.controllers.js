@@ -3,6 +3,7 @@ const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const v = new Validator();
 const { auth } = require("../middlewares/auth");
+const { uploadToBucket } = require("../middlewares/gcsMiddleware");
 const paginate = require("sequelize-paginate");
 const multer = require("multer");
 const geolib = require('geolib');
@@ -78,6 +79,33 @@ function createDonation(req, res, next) {
             data: validationResult,
         });
     } else {
+        // If there is a file upload, upload it to GCS
+        if (req.file) {
+            const destinationFolder = "donations";
+            uploadToBucket(
+                req.file,
+                (err, fileInfo) => {
+                    console.log("File uploaded to GCS:", fileInfo);
+                    if (err) {
+                        return res.status(500).json({
+                            message: "File upload to GCS failed",
+                            data: err,
+                        });
+                    }
+                    // Update the image field with the file information
+                    data.image = fileInfo.imageUrl;
+                    // Continue with donation creation
+                    createDonationInDatabase();
+                },
+                destinationFolder
+            );
+        } else {
+            // No file uploaded, directly create the donation in the database
+            createDonationInDatabase();
+        }
+    }
+    // Function to create the donation in the database
+    function createDonationInDatabase() {
         Donation.create(data)
             .then((result) => {
                 res.status(201).json({
@@ -94,7 +122,6 @@ function createDonation(req, res, next) {
             });
     }
 }
-
 function readDonation(req, res, next) {
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
@@ -134,9 +161,6 @@ function readDonation(req, res, next) {
             res.status(500).json({ message: 'Error fetching donations', error: err });
         });
 }
-
-
-
 
 function readClosestDonation(req, res, next) {
     const userLon = parseFloat(req.params.lon);
@@ -219,25 +243,22 @@ function readAllDonationsByUserId(req, res, next) {
         });
 }
 
-// DELETE DONATION
+// SOFT DELETE DONATION
 function deleteDonation(req, res, next) {
     const donationId = req.params.id;
-
-    // Check if req.user is defined and has a userid property
     if (!req.user || !req.user.userid) {
         return res.status(401).json({
             message: "Unauthorized. User information not available.",
         });
     }
-
-    // Delete the donation based on idDonation
-    Donation.destroy({
-        where: { idDonation: donationId, idUser: req.user.userid },
-    })
-        .then((deletedRows) => {
-            if (deletedRows > 0) {
+    Donation.update(
+        { isDeleted: 1, deletedAt: new Date(), deletedBy: req.user.userid },
+        { where: { idDonation: donationId, idUser: req.user.userid } }
+    )
+        .then((updatedRows) => {
+            if (updatedRows > 0) {
                 res.status(200).json({
-                    message: "Donation deleted successfully",
+                    message: "Donation marked as deleted successfully",
                     data: null,
                 });
             } else {
@@ -250,7 +271,7 @@ function deleteDonation(req, res, next) {
         .catch((err) => {
             console.error(err);
             res.status(500).json({
-                message: "Delete donation failed",
+                message: "Soft delete donation failed",
                 data: err,
             });
         });
