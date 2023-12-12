@@ -24,7 +24,7 @@
         data: validationResult,
         });
     } else {
-        Ingredient.create(data)
+        ingredient.create(data)
         .then((result) => {
             res.status(201).json({
             message: "Ingredient Created Successfully",
@@ -44,7 +44,7 @@
     function readIngredients(req, res, next) {
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
-    Ingredient.paginate({
+    ingredient.paginate({
         page: page,
         paginate: pageSize,
     })
@@ -67,7 +67,7 @@
     function readIngredientById(req, res, next) {
     const ingredientId = req.params.id;
 
-    Ingredient.findByPk(ingredientId)
+    ingredient.findByPk(ingredientId)
         .then((ingredient) => {
         if (!ingredient) {
             res.status(404).json({
@@ -109,7 +109,7 @@
         data: validationResult,
         });
     } else {
-        Ingredient.update(data, { where: { id: req.params.id } })
+        ingredient.update(data, { where: { id: req.params.id } })
         .then((result) => {
             res.status(200).json({
             message: "Success update data",
@@ -127,7 +127,7 @@
     // DELETE INGREDIENT
     function deleteIngredient(req, res, next) {
     const ingredientId = req.params.id;
-    Ingredient.findByPk(ingredientId)
+    ingredient.findByPk(ingredientId)
         .then((ingredient) => {
         if (!ingredient) {
             res.status(404).json({
@@ -135,7 +135,7 @@
             data: null,
             });
         } else {
-            Ingredient.destroy({ where: { id: ingredientId } })
+            ingredient.destroy({ where: { id: ingredientId } })
             .then((result) => {
                 res.status(200).json({
                 message: "Success Delete Data",
@@ -168,7 +168,7 @@
         data: null,
         });
     }
-    Ingredient.paginate({
+    ingredient.paginate({
         page: page,
         paginate: pageSize,
         where: {

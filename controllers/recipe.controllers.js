@@ -68,7 +68,7 @@
         data: validationResult,
       });
     } else {
-      Recipe.create(data)
+      recipe.create(data)
         .then((result) => {
           res.status(200).json({
             message: "Success",
@@ -89,7 +89,7 @@
   function readRecipes(req, res, next) {
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
-    Recipe.paginate({
+    recipe.paginate({
       page: page,
       paginate: pageSize,
     })
@@ -113,7 +113,7 @@
     const recipeId = req.params.id;
 
     // Check if the recipe with the given ID exists
-    Recipe.findByPk(recipeId)
+    recipe.findByPk(recipeId)
       .then((recipe) => {
         if (!recipe) {
           // If recipe is not found, return an error
@@ -169,7 +169,7 @@
       });
     } else {
       // Update recipe jika data valid
-      Recipe.update(data, { where: { id: req.params.id } })
+      recipe.update(data, { where: { id: req.params.id } })
         .then((result) => {
           res.status(200).json({
             message: "Success update data",
@@ -190,7 +190,7 @@
     const recipeId = req.params.id;
 
     // Check if the recipe with the given ID exists
-    Recipe.findByPk(recipeId)
+    recipe.findByPk(recipeId)
       .then((recipe) => {
         if (!recipe) {
           // If recipe is not found, return an error
@@ -236,7 +236,7 @@
       });
     }
 
-    Recipe.paginate({
+    recipe.paginate({
       page: page,
       paginate: pageSize,
       where: {

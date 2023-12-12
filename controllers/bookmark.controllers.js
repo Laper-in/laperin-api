@@ -35,7 +35,7 @@
         data: validationResult,
         });
     } else {
-        Bookmark.create(data)
+        bookmark.create(data)
         .then((result) => {
             res.status(201).json({
             message: "Bookmark Created Successfully",
@@ -66,7 +66,7 @@
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
 
-    Bookmark.findAndCountAll({
+    bookmark.findAndCountAll({
         where: { idUser: userid },
         limit: pageSize,
         offset: (page - 1) * pageSize,
@@ -102,7 +102,7 @@
     }
 
     // Delete the bookmark based on idBookmark
-    Bookmark.destroy({
+    bookmark.destroy({
         where: { idBookmark: bookmarkId, idUser: req.user.userid },
     })
         .then((deletedRows) => {

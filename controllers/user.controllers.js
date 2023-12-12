@@ -33,8 +33,8 @@ function signup(req, res, next) {
       };
 
       Promise.all([
-        User.findOne({ where: { email: req.body.email } }),
-        User.findOne({ where: { username: req.body.username } }),
+        user.findOne({ where: { email: req.body.email } }),
+        user.findOne({ where: { username: req.body.username } }),
       ])
         .then(([existingEmailUser, existingUsernameUser]) => {
           if (existingEmailUser) {
@@ -73,7 +73,7 @@ function signup(req, res, next) {
                 return;
               }
 
-              User.create(data)
+              user.create(data)
                 .then((result) => {
                   res.status(200).json({
                     message: "Success",
@@ -102,7 +102,7 @@ function signup(req, res, next) {
 function read(req, res, next) {
   const page = parseInt(req.query.page, 10) || 1;
   const pageSize = parseInt(req.query.pageSize, 10) || 10;
-  User.paginate({
+  user.paginate({
     page: page,
     paginate: pageSize,
     where: { isDeleted: false },
@@ -123,7 +123,7 @@ function read(req, res, next) {
 }
 //READ USER BY ID
 function readbyid(req, res, next) {
-  User.findByPk(req.params.id)
+  user.findByPk(req.params.id)
     .then((user) => {
       res.send(user);
     })
@@ -187,7 +187,7 @@ function update(req, res, next) {
 
     // If there is a file upload, update the pictureUrl field
     if (req.file) {
-      const destinationFolder = "users"; 
+      const destinationFolder = "users";
       uploadToBucket(
         req.file,
         (err, fileInfo) => {
@@ -212,12 +212,11 @@ function update(req, res, next) {
   }
   // Function to update the database with the prepared data
   function updateDatabase() {
-    User.findByPk(req.params.id)
+    user.findByPk(req.params.id)
       .then((user) => {
         if (!user) {
           return res.status(404).json({
             message: "User not found",
-            
           });
         }
         // Simpan URL gambar lama untuk dihapus
@@ -229,7 +228,6 @@ function update(req, res, next) {
             deleteOldPicture(oldPictureUrl);
             res.status(200).json({
               message: "Success update data",
-            
             });
           })
           .catch((err) => {
@@ -266,7 +264,7 @@ function update(req, res, next) {
       });
   } // Function to update the database with the prepared data
   function updateDatabase() {
-    User.findByPk(req.params.id)
+    user.findByPk(req.params.id)
       .then((user) => {
         if (!user) {
           return res.status(404).json({
@@ -330,7 +328,7 @@ function destroy(req, res, next) {
     deletedBy: 1,
   };
 
-  User.update(data, { where: { id: req.params.id } })
+  user.update(data, { where: { id: req.params.id } })
     .then((result) => {
       res.status(200).json({
         Message: "Success Delete Data",
@@ -351,7 +349,7 @@ function signin(req, res, next) {
   // Choose either email or username for login
   const loginField = email ? { email } : { username };
 
-  User.findOne({ where: loginField })
+  user.findOne({ where: loginField })
     .then((user) => {
       if (user && !user.isDeleted) {
         bcrypt.compare(password, user.password, function (err, result) {
@@ -407,7 +405,7 @@ function searchByusername(req, res, next) {
     });
   }
 
-  User.paginate({
+  user.paginate({
     page: page,
     paginate: pageSize,
     where: {

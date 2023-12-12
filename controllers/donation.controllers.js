@@ -5,39 +5,9 @@ const v = new Validator();
 const { auth } = require("../middlewares/auth");
 const { uploadToBucket } = require("../middlewares/gcsMiddleware");
 const paginate = require("sequelize-paginate");
-const multer = require("multer");
 const geolib = require('geolib');
 
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "uploads/donations/images");
-    },
-    filename: function (req, file, cb) {
-        const ext = file.originalname.split(".").pop();
-        cb(null, Date.now() + "-" + file.fieldname + "." + ext);
-    },
-});
-
-const upload = multer({
-    storage: storage,
-    fileFilter: function (req, file, cb) {
-        const allowedTypes = ["jpg", "jpeg", "png"];
-        const ext = file.originalname.split(".").pop().toLowerCase();
-        if (!allowedTypes.includes(ext)) {
-            const error = new Error("Only JPG and PNG files are allowed");
-            error.code = "LIMIT_FILE_TYPES";
-            return cb(error, false);
-        }
-        const maxSize = 2 * 1024 * 1024;
-        if (file.size > maxSize) {
-            const error = new Error("File size exceeds the limit (2MB)");
-            error.code = "LIMIT_FILE_SIZE";
-            return cb(error, false);
-        }
-        cb(null, true);
-    },
-});
 
 // CREATE DONATION
 function createDonation(req, res, next) {
@@ -106,7 +76,7 @@ function createDonation(req, res, next) {
     }
     // Function to create the donation in the database
     function createDonationInDatabase() {
-        Donation.create(data)
+        donation.create(data)
             .then((result) => {
                 res.status(201).json({
                     message: "Donation Created Successfully",
@@ -131,7 +101,7 @@ function readDonation(req, res, next) {
     const userLon = parseFloat(req.params.lon);
 
     // Fetch all donations from the database
-    Donation.findAll({ where: { isDone: 0 } })
+    donation.findAll({ where: { isDone: 0 } })
         .then((donations) => {
             // Paginate the donations
             const startIndex = (page - 1) * pageSize;
@@ -167,7 +137,7 @@ function readClosestDonation(req, res, next) {
     const userLat = parseFloat(req.params.lat);
 
     // Fetch all donations from the database
-    Donation.findAll({ where: { isDone: 0 } })
+    donation.findAll({ where: { isDone: 0 } })
         .then((donations) => {
             // Calculate distances from the user's location to each donation
             const donationsWithDistances = donations.map((donation) => {
@@ -219,7 +189,7 @@ function readAllDonationsByUserId(req, res, next) {
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
 
-    Donation.findAndCountAll({
+    donation.findAndCountAll({
         where: { idUser: userid, isDone: 0 },
         limit: pageSize,
         offset: (page - 1) * pageSize,
@@ -256,7 +226,7 @@ function deleteDonation(req, res, next) {
         });
     }
     console.log('Deleting donation with id:', donationId);
-    Donation.update(
+    donation.update(
         { isDone: 1, deletedAt: new Date(), deletedBy: req.user.userid },
         { where: { idDonation: donationId, idUser: req.user.userid } }
     ).then((updatedRows) => {
