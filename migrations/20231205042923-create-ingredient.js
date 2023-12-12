@@ -24,6 +24,6 @@
       });
     },
     async down(queryInterface, Sequelize) {
-      await queryInterface.dropTable('ingredients');
+      await queryInterface.dropTable('Ingredients');
     }
   };

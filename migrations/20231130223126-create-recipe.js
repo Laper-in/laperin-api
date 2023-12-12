@@ -40,6 +40,6 @@
       });
     },
     async down(queryInterface, Sequelize) {
-      await queryInterface.dropTable('recipes');
+      await queryInterface.dropTable('Recipes');
     }
   };
