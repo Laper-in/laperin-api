@@ -29,7 +29,7 @@
           type: Sequelize.STRING(255),
         },
         telephone: {
-          type: Sequelize.INTEGER(20),
+          type: Sequelize.BIGINT(20),
         },
         role: {
           type: Sequelize.STRING(10),
@@ -54,10 +54,12 @@
         },
         isDeleted: {
           allowNull: false,
+          defaultValue: 0,
           type: Sequelize.BOOLEAN,
         },
         isPro: {
           allowNull: false,
+          defaultValue: 0,
           type: Sequelize.BOOLEAN,
         },
       });

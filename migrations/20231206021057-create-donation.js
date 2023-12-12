@@ -53,6 +53,7 @@ module.exports = {
         },
       isDone: {
         allowNull: false,
+        defaultValue: 0,
         type: Sequelize.BOOLEAN,
       }
     });

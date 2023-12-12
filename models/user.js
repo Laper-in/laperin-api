@@ -22,7 +22,7 @@
           password: DataTypes.STRING(255),
           picture: DataTypes.STRING(100),
           alamat: DataTypes.STRING(255),
-          telephone: DataTypes.INTEGER(20),
+          telephone: DataTypes.BIGINT(20),
           role: DataTypes.STRING(10),
           updatedBy: DataTypes.INTEGER,
           deletedBy: DataTypes.INTEGER,
