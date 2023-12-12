@@ -32,7 +32,7 @@
         },
         {
           sequelize,
-          modelName: 'User',
+          modelName: 'user',
         }
       );
 

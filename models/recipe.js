@@ -22,7 +22,7 @@
       image: DataTypes.STRING(50) 
     }, {
       sequelize,
-      modelName: 'Recipe',
+      modelName: 'recipe',
     });
 
     return Recipe;

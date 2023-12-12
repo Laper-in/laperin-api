@@ -29,7 +29,7 @@
       },
       {
         sequelize,
-        modelName: "Bookmark",
+        modelName: "bookmark",
       }
     );
 
