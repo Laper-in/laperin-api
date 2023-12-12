@@ -3,7 +3,7 @@ const { nanoid } = require('nanoid');
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Bookmarks', {
+    await queryInterface.createTable('bookmarks', {
       idBookmark: {
         allowNull: false,
         primaryKey: true,

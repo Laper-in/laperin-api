@@ -7,7 +7,7 @@ module.exports = {
     const hashedPassword = await bcrypt.hash('kamusiapa?!', 10);
     const userId = nanoid(10); // Generate a unique ID using nanoid
 
-    await queryInterface.bulkInsert('Users', [
+    await queryInterface.bulkInsert('users', [
       {
         id: userId,
         username: 'Adminsrotor',

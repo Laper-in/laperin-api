@@ -3,7 +3,7 @@
 const { nanoid } = require('nanoid');
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Donations', {
+    await queryInterface.createTable('donations', {
       idDonation: {
         allowNull: false,
         primaryKey: true,
