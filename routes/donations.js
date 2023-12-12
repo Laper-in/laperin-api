@@ -9,6 +9,7 @@
     router.get("/:id", donationController.readAllDonationsByUserId);
     // router.patch("/:id", upload.single("image"),authMiddleware.auth("user"), donationController.updateRecipe);
     router.delete("/:id", authMiddleware.auth("user"), donationController.deleteDonation);
+    
     router.get("/", donationController.readDonation);
     router.get("/closest/:lon/:lat", donationController.readClosestDonation);
 

@@ -131,7 +131,7 @@ function readDonation(req, res, next) {
     const userLon = parseFloat(req.params.lon);
 
     // Fetch all donations from the database
-    Donation.findAll()
+    Donation.findAll({ where: { isDone: 0 } })
         .then((donations) => {
             // Paginate the donations
             const startIndex = (page - 1) * pageSize;
@@ -167,7 +167,7 @@ function readClosestDonation(req, res, next) {
     const userLat = parseFloat(req.params.lat);
 
     // Fetch all donations from the database
-    Donation.findAll()
+    Donation.findAll({ where: { isDone: 0 } })
         .then((donations) => {
             // Calculate distances from the user's location to each donation
             const donationsWithDistances = donations.map((donation) => {
@@ -220,7 +220,7 @@ function readAllDonationsByUserId(req, res, next) {
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
 
     Donation.findAndCountAll({
-        where: { idUser: userid },
+        where: { idUser: userid, isDone: 0 },
         limit: pageSize,
         offset: (page - 1) * pageSize,
     })
@@ -246,35 +246,42 @@ function readAllDonationsByUserId(req, res, next) {
 // SOFT DELETE DONATION
 function deleteDonation(req, res, next) {
     const donationId = req.params.id;
+    console.log(`Received DELETE /donations/${donationId}`);
+    console.log('Deleting donation with id:', donationId);
+    console.log('Request user ID:', req.user.userid);
+
     if (!req.user || !req.user.userid) {
         return res.status(401).json({
             message: "Unauthorized. User information not available.",
         });
     }
+    console.log('Deleting donation with id:', donationId);
     Donation.update(
-        { isDeleted: 1, deletedAt: new Date(), deletedBy: req.user.userid },
+        { isDone: 1, deletedAt: new Date(), deletedBy: req.user.userid },
         { where: { idDonation: donationId, idUser: req.user.userid } }
-    )
-        .then((updatedRows) => {
-            if (updatedRows > 0) {
-                res.status(200).json({
-                    message: "Donation marked as deleted successfully",
-                    data: null,
-                });
-            } else {
-                res.status(404).json({
-                    message: "Donation not found or unauthorized",
-                    data: null,
-                });
-            }
-        })
-        .catch((err) => {
-            console.error(err);
-            res.status(500).json({
-                message: "Soft delete donation failed",
-                data: err,
+    ).then((updatedRows) => {
+    
+        if (updatedRows[0] > 0) {
+            // Operasi update berhasil, lakukan sesuatu di sini
+            res.status(200).json({
+                message: "Donation marked as deleted successfully",
+                data: null,
             });
+        } else {
+            // Tidak ada baris yang terpengaruh, mungkin donasi tidak ditemukan atau tidak diotorisasi
+            res.status(404).json({
+                message: "Donation not found or unauthorized",
+                data: null,
+            });
+        }
+    }).catch((err) => {
+        console.error(err);
+        res.status(500).json({
+            message: "Soft delete donation failed",
+            data: err,
         });
+    });
+    
 }
 
 paginate.paginate(Donation);

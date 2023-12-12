@@ -45,7 +45,13 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
-      isDeleted: {
+        deletedBy: {
+          type: Sequelize.INTEGER,
+        },
+        deletedAt: {
+          type: Sequelize.DATE,
+        },
+      isDone: {
         allowNull: false,
         type: Sequelize.BOOLEAN,
       }
