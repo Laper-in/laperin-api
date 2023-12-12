@@ -1,10 +1,6 @@
 const e = require("express");
 const { User } = require("../models");
-const { use } = require("../routes/users");
 const { uploadToBucket } = require("../middlewares/gcsMiddleware");
-const destinationFolder = require("../middlewares/gcsMiddleware");
-
-const { Storage } = require("@google-cloud/storage");
 require("dotenv").config();
 const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
@@ -221,7 +217,7 @@ function update(req, res, next) {
         if (!user) {
           return res.status(404).json({
             message: "User not found",
-            data: null,
+            
           });
         }
         // Simpan URL gambar lama untuk dihapus
@@ -233,7 +229,7 @@ function update(req, res, next) {
             deleteOldPicture(oldPictureUrl);
             res.status(200).json({
               message: "Success update data",
-              data: result,
+            
             });
           })
           .catch((err) => {
@@ -259,14 +255,14 @@ function update(req, res, next) {
     }
     // Mendapatkan nama file dari URL gambar lama
     const fileName = oldPictureUrl.split("/").pop();
-    const bucketFile = bucket.file(`public/users/images/${fileName}`);
+    const bucketFile = bucket.file(`public/users/media/images/${fileName}`);
     bucketFile
       .delete()
       .then(() => {
         console.log("Old picture deleted successfully");
       })
       .catch((err) => {
-        console.error("Error deleting old picture:", err);
+        console.error("Error deleting old picture:");
       });
   } // Function to update the database with the prepared data
   function updateDatabase() {
@@ -314,7 +310,7 @@ function update(req, res, next) {
     // Mendapatkan nama file dari URL gambar lama
     const fileName = oldPictureUrl.split("/").pop();
     // Mendapatkan path di Google Cloud Storage
-    const bucketFile = bucket.file(`public/users/images/${fileName}`);
+    const bucketFile = bucket.file(`public/users/media/images/${fileName}`);
     // Menghapus file dari Google Cloud Storage
     bucketFile
       .delete()

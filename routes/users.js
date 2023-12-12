@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { upload } = require('../middlewares/multerMiddleware');
-const { uploadToBucket} = require('../middlewares/gcsMiddleware');
 const authMiddleware = require('../middlewares/auth');
 const userController = require('../controllers/user.controllers');
 

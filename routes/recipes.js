@@ -1,11 +1,7 @@
   const express = require("express");
   const router = express.Router();
   const recipeController = require("../controllers/recipe.controllers");
-  const { upload } = require("../middlewares/multerMiddleware");
-  const { handleFileUpload } = require('../middlewares/recipeMiddleware');
-  const { uploadToBucket } = require("../middlewares/gcsMiddleware");
-  
-  const multer = require("multer");
+  const { upload } = require('../middlewares/multerMiddleware');
   const authMiddleware = require('../middlewares/auth');
 
 
