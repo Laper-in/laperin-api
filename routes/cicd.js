@@ -3,7 +3,7 @@ const router = express.Router();
 
 
     router.get('/', (req, res) => {
-        res.send('farhan cupuw');
+        res.send('farhan cipiw');
     });
 
     module.exports = router;
