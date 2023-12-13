@@ -10,6 +10,7 @@ var recipesRouter = require('./routes/recipes');
 var ingredientRouter = require('./routes/ingredients');
 var bookmarkRouter = require('./routes/bookmarks');
 var donationRouter = require('./routes/donations');
+var cicdRouter = require('./routes/cicd');
 
 
 
@@ -31,6 +32,7 @@ app.use('/recipes', recipesRouter);
 app.use('/ingredients', ingredientRouter);
 app.use('/bookmarks', bookmarkRouter);
 app.use('/donations', donationRouter);
+app.use('/cicd', cicdRouter);
 
 // console.log('GCLOUD_PROJECT:', process.env.GCLOUD_PROJECT);
 // console.log('GCS_KEYFILE:', process.env.GCS_KEYFILE);
