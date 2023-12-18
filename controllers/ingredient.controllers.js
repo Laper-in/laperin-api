@@ -55,7 +55,6 @@ async function createIngredient(req, res, next) {
     console.error(err);
     res.status(500).json({
       message: "Create Ingredient Failed",
-      data: err,
     });
   }
 }
@@ -72,10 +71,11 @@ async function getAllIngredient(req, res, next) {
     });
 
     const response = {
-      recipe: result.rows,
+      message: "Success Get All Ingredients",
       total_count: result.count,
       total_pages: Math.ceil(result.count / pageSize),
       current_page: page,
+      data: result.rows,
     };
 
     res.send(response);
@@ -188,7 +188,7 @@ async function deleteIngredient(req, res, next) {
     } else {
       const result = await ingredient.destroy({ where: { id: ingredientId } });
       res.status(200).json({
-        message: "Success Delete Data",
+        message: "Success Delete Ingredient",
       });
     }
   } catch (err) {
@@ -216,22 +216,20 @@ async function searchIngredientByName(req, res, next) {
       paginate: pageSize,
       where: searchQuery,
       order: [['name', 'ASC']], // Sort by name in ascending order
-    });
+    }); 
     const response = {
-      data: result.docs,
+      message: "Success Get All Ingredients By Name",
       total_count: result.total,
       total_pages: result.pages,
       current_page: result.page,
+      data: result.docs,
     };
     if (result.docs.length === 0) {
       res.status(404).json({
         message: "Recipe not found",
       });
     } else {
-      res.status(200).json({
-        message: "Success",
-        result: response,
-      });
+      res.status(200).json(response);
     }
   } catch (err) {
     res.status(500).json({

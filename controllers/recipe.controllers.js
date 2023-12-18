@@ -356,7 +356,7 @@ async function searchRecipeByCategory(req, res, next) {
       total_count: count,
       total_pages: Math.ceil(count / pageSize),
       current_page: page,
-      recipes: recipes,
+      data: recipes,
     };
 
     res.status(200).json(response);
