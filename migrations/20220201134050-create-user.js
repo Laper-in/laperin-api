@@ -22,7 +22,7 @@
         password: {
           type: Sequelize.STRING(255),
         },
-        picture: {
+        image: {
           type: Sequelize.STRING(100),
         },
         alamat: {
@@ -54,12 +54,22 @@
         },
         isDeleted: {
           allowNull: false,
-          defaultValue: 0,
+          defaultValue: false,
           type: Sequelize.BOOLEAN,
         },
         isPro: {
           allowNull: false,
-          defaultValue: 0,
+          defaultValue: false,
+          type: Sequelize.BOOLEAN,
+        },
+        isChef: {
+          allowNull: false,
+          defaultValue: false,
+          type: Sequelize.BOOLEAN,
+        },
+        isOnline: {
+          allowNull: false,
+          defaultValue: false,
           type: Sequelize.BOOLEAN,
         },
       });

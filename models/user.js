@@ -20,7 +20,7 @@
           email: DataTypes.STRING(100),
           fullname: DataTypes.STRING(100),
           password: DataTypes.STRING(255),
-          picture: DataTypes.STRING(100),
+          image: DataTypes.STRING(100),
           alamat: DataTypes.STRING(255),
           telephone: DataTypes.BIGINT(20),
           role: DataTypes.STRING(10),
@@ -29,6 +29,8 @@
           deletedAt: DataTypes.DATE,
           isDeleted: DataTypes.BOOLEAN,
           isPro: DataTypes.BOOLEAN,
+          isChef: DataTypes.BOOLEAN,
+          isOnline: DataTypes.BOOLEAN,
         },
         {
           sequelize,

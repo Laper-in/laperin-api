@@ -1,15 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const { upload } = require('../middlewares/multerMiddleware');
-const authMiddleware = require('../middlewares/auth');
+const { upload } = require('../middlewares/multer');
 const userController = require('../controllers/user.controllers');
+const {
+  authenticateToken,
+  authenticateRefreshToken,
+  checkBlacklist,
+  isAdmin,
+  isUserOwner,
+  isUserOwnerNoRequest,
+  checkUserDeletedBeforeLogin,
+} = require('../middlewares/auth');
 
-router.get('/', authMiddleware.auth('admin'), userController.read);
-router.post('/signup', userController.signup);
-router.post('/signin', userController.signin);
-router.patch('/:id', authMiddleware.auth('user'), upload.single('picture'), userController.update);
-router.delete('/:id', authMiddleware.auth('user'), userController.destroy);
-router.get('/:id', authMiddleware.auth('user'), userController.readbyid);
-router.get('/search/username', userController.searchByusername);
+// Use proper HTTP methods for each operation
+router.get('/', authenticateToken, authenticateRefreshToken, checkBlacklist, isAdmin, userController.getAllUsers);
+router.post('/signup', userController.signUp);
+router.post('/signin', checkUserDeletedBeforeLogin, userController.signIn);
+router.patch('/id', authenticateToken, authenticateRefreshToken, isUserOwnerNoRequest, checkBlacklist, upload.single('image'), userController.updateUsers);
+router.patch('/status/', authenticateToken, authenticateRefreshToken, isUserOwnerNoRequest, checkBlacklist, userController.setStatusOnline);
+router.delete('/:id', authenticateToken, authenticateRefreshToken, isUserOwner, checkBlacklist, userController.deleteUsers);
+router.get('/id', authenticateToken, authenticateRefreshToken, isUserOwnerNoRequest, checkBlacklist, userController.getDetailUsers);
+router.get('/search/username', authenticateToken, authenticateRefreshToken, checkBlacklist, isAdmin, userController.searchUser);
 
 module.exports = router;
