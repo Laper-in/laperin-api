@@ -30,7 +30,7 @@ async function createDonation(req, res, next) {
 
     const schema = {
       idUser: { type: "string", min: 5, max: 50, optional: true },
-      username: { type: "string", min: 5, max: 50, optional: false },
+      username: { type: "string", min: 5, max: 50, optional: true },
       name: { type: "string", min: 5, max: 255, optional: true },
       description: { type: "string", optional: true },
       category: { type: "string", min: 5, max: 255, optional: true },
