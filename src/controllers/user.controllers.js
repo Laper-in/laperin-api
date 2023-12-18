@@ -15,7 +15,7 @@ async function signUp(req, res) {
   const { username, email, password } = req.body;
   try {
     // Check if required fields are provided
-    if (!username || !email || !password) {
+    if ( !email || !password) {
       return res.status(400).json({ error: 'Username, email, and password are required' });
     }
     // Check if a user with the provided email already exists
@@ -30,7 +30,8 @@ async function signUp(req, res) {
     const newUser = await user.create({
       username,
       email,
-      role,
+      role: 'user',
+      isDeleted: false,
       password: hashedPassword,
       // Add other fields as needed
     });
