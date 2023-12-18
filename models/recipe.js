@@ -16,10 +16,16 @@
       },
       name: DataTypes.STRING(50) ,
       ingredient: DataTypes.STRING(1200),
+      description: DataTypes.STRING(1200),
       category: DataTypes.STRING(20),
       guide: DataTypes.STRING(1200),
-      urlVideo: DataTypes.STRING(255),
-      image: DataTypes.STRING(50) 
+      time: DataTypes.TIME,
+      video: DataTypes.STRING(255),
+      image: DataTypes.STRING(50), 
+      createdAt: DataTypes.DATE,
+      createBy: DataTypes.STRING(50),
+      updatedAt: DataTypes.DATE,
+      updatedBy: DataTypes.STRING(50),
     }, {
       sequelize,
       modelName: 'recipe',
