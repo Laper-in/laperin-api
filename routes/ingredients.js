@@ -1,13 +1,19 @@
     const express = require("express");
     const router = express.Router();
+    const { upload } = require('../middlewares/multer');
     const ingredientController = require("../controllers/ingredient.controllers");
-    const authMiddleware = require("../middlewares/auth");
+    const {
+        authenticateToken,
+        authenticateRefreshToken,
+        checkBlacklist,
+        isAdmin,
+        isUserOwner,
+      } = require('../middlewares/auth');
 
-    router.get("/", ingredientController.readIngredients);
-    router.post("/",authMiddleware.auth("admin"), ingredientController.createIngredient);
-    router.get("/:id", ingredientController.readIngredientById);
-    router.patch("/:id",authMiddleware.auth("admin"), ingredientController.updateIngredient);
-    router.delete("/:id",authMiddleware.auth("admin"), ingredientController.deleteIngredient);
-    router.get("/search/name", ingredientController.searchIngredientByName);
+    router.get("/", ingredientController.getAllIngredient);
+    router.post("/", upload.single('image'), ingredientController.createIngredient);
+    router.patch("/:id",authenticateToken,authenticateRefreshToken,upload.single('image'), ingredientController.updateIngredient);
+    router.delete("/:id",authenticateToken,authenticateRefreshToken,isUserOwner,checkBlacklist, ingredientController.deleteIngredient);
+    router.get("/search", ingredientController.searchIngredientByName);
 
     module.exports = router;
