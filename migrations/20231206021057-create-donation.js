@@ -45,11 +45,14 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
-        deletedBy: {
-          type: Sequelize.INTEGER,
+      updatedBy: {
+        type: Sequelize.INTEGER,
+      },
+      deletedBy: {
+        type: Sequelize.INTEGER,
         },
-        deletedAt: {
-          type: Sequelize.DATE,
+      deletedAt: {
+        type: Sequelize.DATE,
         },
       isDone: {
         allowNull: false,
