@@ -18,7 +18,7 @@ const upload = multer({
         return cb(error, false);
       }
     } else if (req.files && req.files['video'] && allowedVideoTypes.includes(ext)) {
-      const maxSize = 50 * 1024 * 1024;
+      const maxSize = 100 * 1024 * 1024;
       if (file.size > maxSize) {
         const error = new Error("Video file size exceeds the limit (50MB)");
         error.code = "LIMIT_FILE_SIZE";

@@ -11,9 +11,9 @@
       } = require('../middlewares/auth');
 
     router.get("/", ingredientController.getAllIngredient);
-    router.post("/", upload.single('image'), ingredientController.createIngredient);
+    router.post("/",authenticateToken, authenticateRefreshToken, isAdmin, checkBlacklist, upload.single('image'), ingredientController.createIngredient);
     router.patch("/:id",authenticateToken,authenticateRefreshToken,upload.single('image'), ingredientController.updateIngredient);
     router.delete("/:id",authenticateToken,authenticateRefreshToken,isUserOwner,checkBlacklist, ingredientController.deleteIngredient);
-    router.get("/search", ingredientController.searchIngredientByName);
+    router.get("/search",authenticateToken,authenticateRefreshToken, ingredientController.searchIngredientByName);
 
     module.exports = router;

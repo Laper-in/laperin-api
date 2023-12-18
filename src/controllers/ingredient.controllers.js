@@ -1,4 +1,4 @@
-const { ingredient } = require("../models");
+const { ingredient } = require("../database/models");
 const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const { Op } = require("sequelize");
@@ -58,7 +58,6 @@ async function createIngredient(req, res, next) {
     });
   }
 }
-// READ ALL INGREDIENTS
 async function getAllIngredient(req, res, next) {
   const page = parseInt(req.query.page, 10) || 1;
   const pageSize = parseInt(req.query.pageSize, 10) || 10;
@@ -84,7 +83,6 @@ async function getAllIngredient(req, res, next) {
     res.status(500).send(err);
   }
 }
-// UPDATE INGREDIENT
 async function updateIngredient(req, res, next) {
   const ingredientId = req.params.id;
 
@@ -175,7 +173,6 @@ async function updateIngredient(req, res, next) {
     }
   }
 }
-// DELETE INGREDIENT
 async function deleteIngredient(req, res, next) {
   const ingredientId = req.params.id;
 
@@ -197,7 +194,6 @@ async function deleteIngredient(req, res, next) {
     });
   }
 }
-// SEARCH INGREDIENT BY NAME
 async function searchIngredientByName(req, res, next) {
   const searchTerm = req.query.q;
   const page = parseInt(req.query.page, 10) || 1;

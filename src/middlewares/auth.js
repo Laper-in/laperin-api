@@ -1,7 +1,8 @@
 /* eslint-disable radix */
 /* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
-const { user ,donation } = require("../models");
+const { user ,donation } = require("../database/models");
+dotenv = require("dotenv");
 
 // Array untuk menyimpan token yang telah di-blacklist
 const authData = {
@@ -18,7 +19,7 @@ function generateAccessToken(user) {
       role: user.role,
       isDeleted: user.isDeleted,
     },
-    'jwtsementara',
+    process.env.JWT_SECRET,
     {
       expiresIn: '60d',
     }
@@ -34,7 +35,7 @@ function generateRefreshToken(user) {
       email: user.email,
       role: user.role,
     },
-    'refreshTokenSecret',
+    process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: '7d',
     }

@@ -1,5 +1,5 @@
 const { Storage } = require("@google-cloud/storage");
-const { upload } = require("../middlewares/multerMiddleware");
+const { upload } = require("./multerMiddleware");
 require("dotenv").config();
 
 const storage = new Storage({
@@ -56,7 +56,7 @@ const uploadToBucket = (file, cb, destinationFolder) => {
 };
 
 const uploadVideoToBucket = (file, cb, destinationFolder) => {
-  const allowedTypes = ["mp4", "avi", "mkv"]; // Add video file extensions
+  const allowedTypes = ["mp4", "avi", "mkv"];
 
   if (!file) {
     const error = new Error("No file provided");
@@ -72,7 +72,7 @@ const uploadVideoToBucket = (file, cb, destinationFolder) => {
     return cb(error, false);
   }
 
-  const maxSize = 50 * 1024 * 1024; // Set the maximum size to 50MB (adjust as needed)
+  const maxSize = 100 * 1024 * 1024; 
 
   if (file.size > maxSize) {
     const error = new Error("File size exceeds the limit (50MB)");
@@ -80,7 +80,7 @@ const uploadVideoToBucket = (file, cb, destinationFolder) => {
     return cb(error, false);
   }
 
-  const folderPath = `public/${destinationFolder}/videos`; // Update the destination path for videos
+  const folderPath = `public/${destinationFolder}/videos`;
   const fileName = `${Date.now()}-${file.fieldname}.${ext}`;
   const bucketFile = bucket.file(`${folderPath}/${fileName}`);
   const stream = bucketFile.createWriteStream({
@@ -107,6 +107,3 @@ const uploadVideoToBucket = (file, cb, destinationFolder) => {
 };
 
 module.exports = { uploadToBucket, bucket, uploadVideoToBucket };
-
-
-module.exports = { uploadToBucket, bucket ,uploadVideoToBucket };

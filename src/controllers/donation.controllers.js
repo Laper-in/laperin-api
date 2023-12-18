@@ -1,4 +1,4 @@
-const { donation } = require("../models");
+const { donation } = require("../database/models");
 const { nanoid } = require("nanoid");
 const { uploadToBucket ,bucket } = require("../middlewares/gcsMiddleware");
 const {
@@ -80,7 +80,6 @@ async function createDonation(req, res, next) {
     });
   }
 }
-// READ DONATION
 async function getAllDonation(req, res, next) {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -121,7 +120,6 @@ async function getAllDonation(req, res, next) {
     res.status(500).json({ message: 'Error fetching donations', error: err });
   }
 }
-// READ CLOSEST DONATION
 async function getAllClosestDonation(req, res, next) {
   try {
     const userLon = parseFloat(req.params.lon);
@@ -178,11 +176,10 @@ async function getAllClosestDonation(req, res, next) {
     res.status(500).json({ message: 'Error fetching closest donation', error: err });
   }
 }
-// READ DONATION BY USER ID
 async function getAllDonationByUserId(req, res, next) {
   try {
-    const userIdFromToken = req.user.userId; // Mengambil ID pengguna dari token JWT
-    const requestedUserId = userIdFromToken; // Menggunakan ID pengguna yang diautentikasi
+    const userIdFromToken = req.user.userId;
+    const requestedUserId = userIdFromToken; 
 
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
@@ -210,8 +207,6 @@ async function getAllDonationByUserId(req, res, next) {
     });
   }
 }
-
-// READ DONATION DETAIL
 async function getDetailDonation(req, res, next) {
   try {
     const donationId = req.params.id;
@@ -237,7 +232,6 @@ async function getDetailDonation(req, res, next) {
     });
   }
 }
-// DELETE DONATION
 async function deleteDonation(req, res, next) {
   const donationId = req.params.id || req.query.id;
   const userId = req.user.userId; 
@@ -267,11 +261,9 @@ async function deleteDonation(req, res, next) {
     });
   });
 }
-// Update donation endpoint
 async function updateDonation(req, res, next) {
   const userId = req.user.userId;
   const donationId = req.params.id;
-
   const data = {
     name: req.body.name,
     description: req.body.description,
@@ -282,11 +274,9 @@ async function updateDonation(req, res, next) {
     updatedAt: new Date(),
     updatedBy: userId,
   };
-
   try {
     await isDonationOwner(req, res, async () => {
       const result = await validateAndUpdate();
-
       res.status(200).json({
         message: "Success update donation",
         data: result,
@@ -347,10 +337,9 @@ async function updateDonation(req, res, next) {
     const updatedDonation = await donation.findByPk(donationId);
     return updatedDonation;
   }
-// Function to delete old image from Google Cloud Storage
+  // Function to delete the old image from GCS
   async function deleteOldImage(oldImageUrl) {
     if (!oldImageUrl || !data.image) {
-      // Jika tidak ada gambar lama atau tidak ada gambar baru, keluar dari fungsi
       return;
     }
 

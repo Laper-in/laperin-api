@@ -1,4 +1,4 @@
-const { recipe } = require("../models");
+const { recipe } = require("../database/models");
 const { nanoid } = require("nanoid");
 const { Op } = require("sequelize");
 const {
@@ -6,19 +6,10 @@ const {
   bucket,
   uploadVideoToBucket,
 } = require("../middlewares/gcsMiddleware");
-const {
-  generateAccessToken,
-  clearToken,
-  authData,
-  isUserOwner,
-  isDonationOwner,
-  isAdmin,
-  isUserDeleted,
-} = require("../middlewares/auth");
 const Validator = require("fastest-validator");
 const v = new Validator();
 const paginate = require("sequelize-paginate");
-// CREATE RECIPE
+
 async function createRecipe(req, res, next) {
   try {
     const data = {
@@ -74,7 +65,7 @@ async function createRecipe(req, res, next) {
 
     // If there is a video file upload, upload it to GCS
     if (req.files["video"]) {
-      const videoDestinationFolder = "recipes";
+      const videoDestinationFolder = "recipe";
       const videoFileInfo = await new Promise((resolve, reject) => {
         uploadVideoToBucket(
           req.files["video"][0],
@@ -106,7 +97,6 @@ async function createRecipe(req, res, next) {
     });
   }
 }
-// READ ALL RECIPE
 async function getAllRecipe(req, res, next) {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -130,7 +120,6 @@ async function getAllRecipe(req, res, next) {
     res.status(500).send(err);
   }
 }
-// READ RECIPE BY ID
 async function getDetailRecipe(req, res, next) {
   try {
     const recipeId = req.params.id;
@@ -158,7 +147,6 @@ async function getDetailRecipe(req, res, next) {
     });
   }
 }
-// UPDATE RECIPE
 function updateRecipe(req, res, next) {
   const data = {
     name: req.body.name,
@@ -206,13 +194,12 @@ function updateRecipe(req, res, next) {
       });
   }
 }
-// DELETE RECIPE
 async function deleteRecipe(req, res, next) {
   try {
     const recipeId = req.params.id;
 
     // Check if the recipe with the given ID exists
-    const existingRecipe = await Recipe.findByPk(recipeId);
+    const existingRecipe = await recipe.findByPk(recipeId);
 
     if (!existingRecipe) {
       // If recipe is not found, return an error
@@ -223,21 +210,50 @@ async function deleteRecipe(req, res, next) {
       return;
     }
 
+    // Save the image and video URLs before deleting the recipe
+    const imageUrl = existingRecipe.image;
+    const videoUrl = existingRecipe.video;
+
     // If recipe exists, proceed with deletion
-    const result = await Recipe.destroy({ where: { id: recipeId } });
+    const result = await recipe.destroy({ where: { id: recipeId } });
+
+    // Delete the associated image and video from GCS
+    await deleteFileFromGCS(imageUrl);
+    await deleteFileFromGCS(videoUrl);
 
     res.status(200).json({
       message: "Success Delete Data",
       data: result,
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({
       message: "Delete Recipe Failed",
       data: err.toString(),
     });
   }
 }
-// SEARCH RECIPE BY NAME
+
+// Function to delete file from Google Cloud Storage
+async function deleteFileFromGCS(fileUrl) {
+  if (!fileUrl) {
+    // If there's no file URL, exit the function
+    return;
+  }
+
+  try {
+    const fileName = fileUrl.split("/").pop();
+    const folderPath = fileUrl.includes("images") ? "images" : "videos";
+    const bucketFile = bucket.file(`public/recipe/${folderPath}/${fileName}`);
+    
+    await bucketFile.delete();
+    console.log("File deleted from GCS successfully");
+  } catch (err) {
+    console.error("Error deleting file from GCS:", err);
+  }
+}
+
+
 async function searchRecipeByName(req, res, next) {
   const searchTerm = req.query.q;
   const page = parseInt(req.query.page, 10) || 1;
@@ -281,7 +297,6 @@ async function searchRecipeByName(req, res, next) {
     });
   }
 }
-
 async function searchRecipeById(req, res, next) {
   const recipeIds = req.query.ids; // Assuming the IDs are provided as a comma-separated string
   const page = parseInt(req.query.page, 10) || 1;
@@ -328,7 +343,6 @@ async function searchRecipeById(req, res, next) {
     });
   }
 }
-
 async function searchRecipeByCategory(req, res, next) {
   const page = parseInt(req.query.page, 10) || 1;
   const pageSize = parseInt(req.query.pageSize, 10) || 10;

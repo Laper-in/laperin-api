@@ -1,4 +1,4 @@
-const { user } = require("../models");
+const { user } = require("../database/models");
 const { uploadToBucket , bucket } = require("../middlewares/gcsMiddleware");
 const Validator = require("fastest-validator");
 const v = new Validator();
@@ -10,7 +10,6 @@ const {
 } = require('../middlewares/auth');
 const paginate = require("sequelize-paginate");
 
-// Sign up endpoint
 async function signUp(req, res) {
   console.log('Entire Request Body:', req.body);
   const { username, email, password } = req.body;
@@ -49,7 +48,6 @@ async function signUp(req, res) {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-// Sign in endpoint
 async function signIn(req, res) {
   const { username, password } = req.body;
   try {
@@ -81,7 +79,6 @@ async function signIn(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-// Sign out endpoint
 async function signOut(req, res) {
   try {
     const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
@@ -104,7 +101,6 @@ async function signOut(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-// Get all users endpoint
 async function getAllUsers(req, res, next) {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -129,7 +125,6 @@ async function getAllUsers(req, res, next) {
     res.status(500).send(err);
   }
 }
-// Get user detail endpoint
 async function getDetailUsers(req, res) {
   // Assuming the JWT is stored in the Authorization header
   const userId = req.user.userId; // This assumes that your middleware has already decoded the JWT and added the user information to the request object
@@ -148,8 +143,6 @@ async function getDetailUsers(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-
-// Update user endpoint
 async function updateUsers(req, res, next) {
 
   const userId = req.user.userId;
@@ -255,7 +248,6 @@ async function updateUsers(req, res, next) {
     }
   }
 }
-// Delete user endpoint
 async function deleteUsers(req, res) {
   const userIdToDelete = req.params.id;
   try {
@@ -288,7 +280,6 @@ async function deleteUsers(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-// Search user endpoint
 async function searchUser(req, res, next) {
   try {
     const searchTerm = req.query.q;
@@ -337,7 +328,6 @@ async function searchUser(req, res, next) {
     });
   }
 }
-
 async function setStatusOnline(req, res) {
   const userIdToUpdate = req.user.userId; 
   const { isOnline } = req.body;
@@ -360,7 +350,6 @@ async function setStatusOnline(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-
 
 paginate.paginate(user);
 module.exports = {

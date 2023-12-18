@@ -1,17 +1,11 @@
-const { bookmark , recipe  } = require("../models");
+const { bookmark , recipe  } = require("../database/models");
 const { Op } = require("sequelize");
-const {
-  generateAccessToken, clearToken, authData, isUserOwner,isDonationOwner, isAdmin,isUserDeleted,
-} = require('../middlewares/auth');
 const Validator = require("fastest-validator");
 const v = new Validator();
 const paginate = require("sequelize-paginate");
 
-// CREATE BOOKMARK
 async function createBookmark(req, res, next) {
-
   // const userId = req.user.userId; // Extract user ID from JWT
-
   const data = {
     idUser: req.user.userId,
     idRecipe: req.body.idRecipe,
@@ -56,7 +50,6 @@ async function createBookmark(req, res, next) {
     }
   }
 }
-// READ BOOKMARKS
 async function getAllBookmarksByUserId(req, res, next) {
   const userId = req.user.userId; // Gunakan userId dari JWT
   const page = parseInt(req.query.page, 10) || 1;
@@ -97,7 +90,6 @@ async function getAllBookmarksByUserId(req, res, next) {
     });
   }
 }
-// SEARCH BOOKMARKS BY CATEGORY
 async function searchAllBookmarkByCategory(req, res, next) {
   const userId = req.user.userId;
   const page = parseInt(req.query.page, 10) || 1;
@@ -158,7 +150,6 @@ async function searchAllBookmarkByCategory(req, res, next) {
     });
   }
 }
-// DELETE BOOKMARK
 async function deleteBookmark(req, res, next) {
   const bookmarkId = req.params.id;
 

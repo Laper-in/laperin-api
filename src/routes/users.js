@@ -16,6 +16,7 @@ const {
 router.get('/', authenticateToken, authenticateRefreshToken, checkBlacklist, isAdmin, userController.getAllUsers);
 router.post('/signup', userController.signUp);
 router.post('/signin', checkUserDeletedBeforeLogin, userController.signIn);
+router.post('/signout', authenticateToken, authenticateRefreshToken, checkBlacklist, userController.signOut);
 router.patch('/id', authenticateToken, authenticateRefreshToken, isUserOwnerNoRequest, checkBlacklist, upload.single('image'), userController.updateUsers);
 router.patch('/status/', authenticateToken, authenticateRefreshToken, isUserOwnerNoRequest, checkBlacklist, userController.setStatusOnline);
 router.delete('/:id', authenticateToken, authenticateRefreshToken, isUserOwner, checkBlacklist, userController.deleteUsers);

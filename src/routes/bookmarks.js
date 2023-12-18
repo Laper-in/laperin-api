@@ -5,8 +5,6 @@
         authenticateToken,
         authenticateRefreshToken,
         checkBlacklist,
-        isAdmin,
-        isUserOwner,
       } = require('../middlewares/auth');
 
     // Apply auth middleware to routes that require authentication

@@ -10,10 +10,10 @@ const {
     isUserOwner,
 } = require('../middlewares/auth');
 
-router.post("/", upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]), recipeController.createRecipe);
+router.post("/",authenticateToken, authenticateRefreshToken, isAdmin, checkBlacklist, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]), recipeController.createRecipe);
 router.get("/", recipeController.getAllRecipe);
 router.get("/:id", recipeController.getDetailRecipe);
-router.patch("/:id", upload.single("image"), authenticateToken, authenticateRefreshToken, isUserOwner, checkBlacklist, recipeController.updateRecipe);
+router.patch("/:id", upload.single("image"), authenticateToken, authenticateRefreshToken, isAdmin, checkBlacklist, recipeController.updateRecipe);
 router.delete("/:id", authenticateToken, authenticateRefreshToken, isUserOwner, checkBlacklist, recipeController.deleteRecipe);
 router.get("/search/name", recipeController.searchRecipeByName);
 router.get("/search/id", recipeController.searchRecipeById);

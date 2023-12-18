@@ -4,13 +4,13 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var recipesRouter = require('./routes/recipes');
-var ingredientRouter = require('./routes/ingredients');
-var bookmarkRouter = require('./routes/bookmarks');
-var donationRouter = require('./routes/donations');
-var cicdRouter = require('./routes/cicd');
+var indexRouter = require('../routes/index');
+var usersRouter = require('../routes/users');
+var recipesRouter = require('../routes/recipes');
+var ingredientRouter = require('../routes/ingredients');
+var bookmarkRouter = require('../routes/bookmarks');
+var donationRouter = require('../routes/donations');
+var cicdRouter = require('../routes/cicd');
 
 
 
