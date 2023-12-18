@@ -90,11 +90,11 @@ async function signOut(req, res) {
     if (authData.blacklistedTokens.includes(token)) {
       return res.status(401).json({ error: 'Unauthorized: Token has been revoked' });
     }
-    if (req.user && req.user.userId && req.user.usernames) {
-      const { userId, usernames } = req.user;
+    if (req.user && req.user.userId && req.user.username) {
+      const { userId, username } = req.user;
       // Clear (blacklist) the token
       clearToken(token);
-      res.status(200).json({ message: `Sign-out successful for user ID ${userId} Usernames ${usernames}`, userId, usernames });
+      res.status(200).json({ message: `Sign-out successful for user ID ${userId} Usernames ${username}`, userId, usernames });
     } else {
       res.status(401).json({ error: 'Unauthorized: User information not available' });
     }
