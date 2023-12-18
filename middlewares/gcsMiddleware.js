@@ -10,7 +10,7 @@ const storage = new Storage({
 const bucket = storage.bucket(process.env.GCS_BUCKET);
 
 const allowedTypes = ["jpg", "jpeg", "png"];
-const maxSize = 2 * 1024 * 1024; /*  */
+const maxSize = 2 * 1024 * 1024;
 
 const uploadToBucket = (file, cb, destinationFolder) => {
   if (!file) {
@@ -29,12 +29,8 @@ const uploadToBucket = (file, cb, destinationFolder) => {
     error.code = "LIMIT_FILE_SIZE";
     return cb(error, false);
   }
-
   const folderPath = `public/${destinationFolder}/images`; 
   const fileName = `${Date.now()}-${file.fieldname}.${ext}`; 
-  console.log("Debug - folderPath:", folderPath);
-  console.log("Debug - fileName:", fileName);
-
   const bucketFile = bucket.file(`${folderPath}/${fileName}`); 
   const stream = bucketFile.createWriteStream({
     metadata: {
@@ -59,4 +55,58 @@ const uploadToBucket = (file, cb, destinationFolder) => {
   stream.end(file.buffer);
 };
 
-module.exports = { uploadToBucket, bucket };
+const uploadVideoToBucket = (file, cb, destinationFolder) => {
+  const allowedTypes = ["mp4", "avi", "mkv"]; // Add video file extensions
+
+  if (!file) {
+    const error = new Error("No file provided");
+    error.code = "LIMIT_FILE_TYPES";
+    return cb(error, false);
+  }
+
+  const ext = file.originalname.split(".").pop().toLowerCase();
+
+  if (!allowedTypes.includes(ext)) {
+    const error = new Error("Only MP4, AVI, and MKV files are allowed");
+    error.code = "LIMIT_FILE_TYPES";
+    return cb(error, false);
+  }
+
+  const maxSize = 50 * 1024 * 1024; // Set the maximum size to 50MB (adjust as needed)
+
+  if (file.size > maxSize) {
+    const error = new Error("File size exceeds the limit (50MB)");
+    error.code = "LIMIT_FILE_SIZE";
+    return cb(error, false);
+  }
+
+  const folderPath = `public/${destinationFolder}/videos`; // Update the destination path for videos
+  const fileName = `${Date.now()}-${file.fieldname}.${ext}`;
+  const bucketFile = bucket.file(`${folderPath}/${fileName}`);
+  const stream = bucketFile.createWriteStream({
+    metadata: {
+      contentType: file.mimetype,
+    },
+  });
+
+  stream.on("error", (err) => {
+    console.error("Stream Error:", err);
+    cb(err, null);
+  });
+
+  stream.on("finish", () => {
+    const videoUrl = `https://storage.googleapis.com/${bucket.name}/${bucketFile.name}`;
+    const fileInfo = {
+      originalFilename: file.originalname,
+      videoUrl: videoUrl,
+    };
+    cb(null, fileInfo);
+  });
+
+  stream.end(file.buffer);
+};
+
+module.exports = { uploadToBucket, bucket, uploadVideoToBucket };
+
+
+module.exports = { uploadToBucket, bucket ,uploadVideoToBucket };

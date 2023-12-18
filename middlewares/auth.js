@@ -1,63 +1,213 @@
-// auth.js
-const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-const { User } = require("../models");
+/* eslint-disable radix */
+/* eslint-disable consistent-return */
+const jwt = require('jsonwebtoken');
+const { user ,donation } = require("../models");
 
-dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET;
+// Array untuk menyimpan token yang telah di-blacklist
+const authData = {
+  blacklistedTokens: [],
+};
 
-function auth() {
-  return async function (req, res, next) {
-    const authHeader = req.headers.authorization;
+// Function to generate access token
+function generateAccessToken(user) {
+  return jwt.sign(
+    {
+      userId: user.id,
+      usernames: user.username,
+      email: user.email,
+      role: user.role,
+      isDeleted: user.isDeleted,
+    },
+    'jwtsementara',
+    {
+      expiresIn: '60d',
+    }
+  );
+}
 
-    if (authHeader) {
-      const token = authHeader.split(" ")[1];
+// Function to generate refresh token
+function generateRefreshToken(user) {
+  return jwt.sign(
+    {
+      userId: user.id,
+      usernames: user.usernames,
+      email: user.email,
+      role: user.role,
+    },
+    'refreshTokenSecret',
+    {
+      expiresIn: '7d',
+    }
+  );
+}
 
-      jwt.verify(token, JWT_SECRET, async (err, user) => {
-        if (err) {
-          console.error(err);
-          return res.status(403).json({
-            message: "Invalid Token !!!",
-          });
-        }
+// Middleware to authenticate access token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
 
-        // Log the decoded user for debugging
-        console.log("Decoded User:", user);
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized: Access token not provided' });
+  }
 
-        // Attach user information to the request object
-        req.user = user;
+  jwt.verify(token, 'jwtsementara', (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Forbidden: Invalid access token' });
+    }
 
-        // Check if the user has the necessary permissions
-        if (user.role === "user") {
-          // Allow DELETE requests without matching user IDs
-          if (req.method === "DELETE") {
-            next();
-          } else {
-            // Ensure idUser in the request payload matches userid in the token for other methods
-            if (
-              (req.body.idUser && req.body.idUser === user.userid.toString()) ||
-              (req.params.id && req.params.id === user.userid.toString())
-            ) {
-              next();
-            } else {
-              return res.status(403).json({
-                message: "Unauthorized. User IDs do not match.",
-              });
-            }
-          }
-        } else {
-          // Admins or other roles can proceed
-          next();
-        }
-      });
-    } else {
-      return res.status(401).json({
-        message: "Invalid or Expired Token !!!",
+    if (user.isDeleted) {
+      return res.status(403).json({ error: 'Forbidden: User account has been deleted' });
+    }
+
+    req.user = user;
+    next();
+  });
+}
+
+// Middleware to authenticate refresh token
+function authenticateRefreshToken(req, res, next) {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return next();
+  }
+
+  jwt.verify(refreshToken, 'refreshTokenSecret', (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Forbidden: Invalid refresh token' });
+    }
+
+    req.user = user;
+    next();
+  });
+}
+
+// Middleware to check if the user is an admin
+function isAdmin(req, res, next) {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ error: 'Forbidden: You do not have admin privileges' });
+  }
+}
+
+// Middleware to check if the user is the owner of the requested resource or an admin
+function isUserOwner(req, res, next) {
+  const requestedUserId = req.params.id;
+  const authenticatedUserId = req.user.userId;
+  if (req.user.role === 'admin' || requestedUserId === authenticatedUserId) {
+    next();
+  } else {
+    res.status(403).json({
+      error: 'Forbidden: You do not have permission to access this resource',
+    });
+  }
+}
+function isUserOwnerNoRequest(req, res, next) {
+  const authenticatedUserId = req.user.userId;
+  console.log('Authenticated User ID:', authenticatedUserId);
+  if (req.user.role === 'admin' ||  authenticatedUserId) {
+    next();
+  } else {
+    res.status(403).json({
+      error: 'Forbidden: You do not have permission to access this resource',
+    });
+  }
+}
+
+async function isDonationOwner(req, res, next) {
+  const requestedDonationId = req.params.id;
+  const authenticatedUserId = req.user.userId;
+
+  try {
+    const donationObj = await donation.findByPk(requestedDonationId);
+
+    if (!donationObj) {
+      return res.status(404).json({
+        error: 'Donation not found',
       });
     }
-  };
+
+    // Check if the authenticated user is the owner of the donation or an admin
+    if (req.user.role === 'admin' || donationObj.idUser === authenticatedUserId) {
+      req.donationObj = donationObj; // Attach the donation object to the request for later use
+      next();
+    } else {
+      res.status(403).json({
+        error: 'Forbidden: You do not have permission to delete this donation',
+      });
+    }
+  } catch (error) {
+    console.error('Error checking donation ownership:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+    });
+  }
+}
+
+// Middleware to check if the user is deleted
+async function isUserDeleted(userId) {
+  try {
+    const foundUser = await user.findByPk(userId);
+
+    if (!foundUser) {
+      return true;
+    }
+
+    return foundUser.isDeleted;
+  } catch (error) {
+    console.error('Error checking user deletion status:', error);
+    return true;
+  }
+}
+
+async function checkUserDeletedBeforeLogin(req, res, next) {
+  const { username, password } = req.body;
+  try {
+    if (!username) {
+      return res.status(400).json({ error: 'Bad Request: Username is required' });
+    }
+    const foundUser = await user.findOne({ where: { username } });
+    if (!foundUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const userDeleted = await isUserDeleted(foundUser.id);
+    if (userDeleted) {
+      return res.status(403).json({ error: 'Forbidden: User account has been deleted' });
+    }
+    next();
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+// Middleware to check if the token is in the blacklist
+function checkBlacklist(req, res, next) {
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  if (token && authData.blacklistedTokens.includes(token)) {
+    return res.status(401).json({ error: 'Unauthorized: Token has been revoked' });
+  }
+  next();
+}
+
+// Function to add a token to the blacklist
+function clearToken(token) {
+  authData.blacklistedTokens.push(token);
 }
 
 module.exports = {
-  auth: auth,
+  generateAccessToken,
+  generateRefreshToken,
+  authenticateToken,
+  authenticateRefreshToken,
+  isAdmin,
+  isUserOwner,
+  isUserDeleted,
+  checkUserDeletedBeforeLogin,
+  checkBlacklist,
+  clearToken,
+  authData,
+  isDonationOwner,
+  isUserOwnerNoRequest,
 };
