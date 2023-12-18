@@ -51,7 +51,7 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ error: 'Unauthorized: Access token not provided' });
   }
 
-  jwt.verify(token, 'jwtsementara', (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ error: 'Forbidden: Invalid access token' });
     }
@@ -73,7 +73,7 @@ function authenticateRefreshToken(req, res, next) {
     return next();
   }
 
-  jwt.verify(refreshToken, 'refreshTokenSecret', (err, user) => {
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ error: 'Forbidden: Invalid refresh token' });
     }
