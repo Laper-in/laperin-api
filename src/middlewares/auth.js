@@ -14,7 +14,7 @@ function generateAccessToken(user) {
   return jwt.sign(
     {
       userId: user.id,
-      usernames: user.username,
+      username: user.username,
       email: user.email,
       role: user.role,
       isDeleted: user.isDeleted,
@@ -31,7 +31,7 @@ function generateRefreshToken(user) {
   return jwt.sign(
     {
       userId: user.id,
-      usernames: user.usernames,
+      username: user.username,
       email: user.email,
       role: user.role,
     },
