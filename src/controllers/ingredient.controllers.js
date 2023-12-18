@@ -15,7 +15,7 @@ async function createIngredient(req, res, next) {
     };
 
     const schema = {
-      name: { type: "string", min: 5, max: 50, optional: false },
+      name: { type: "string", min: 3, max: 50, optional: false },
     };
     // VALIDATE DATA
     const validationResult = v.validate(data, schema);
