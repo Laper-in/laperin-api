@@ -170,13 +170,13 @@ async function updateUsers(req, res, next) {
 
     res.status(200).json({
       message: "Success update data",
-      data: data,
+      // data: data,
     });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({
       message: "Update Failed",
-      data: error,
+      // data: error,
     });
   }
   // Function to perform the validation and update

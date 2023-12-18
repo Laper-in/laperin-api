@@ -70,7 +70,7 @@ async function createDonation(req, res, next) {
 
     res.status(201).json({
       message: "Donation Created Successfully",
-      data: result,
+      // data: result,
     });
   } catch (err) {
     console.error(err);
@@ -279,14 +279,12 @@ async function updateDonation(req, res, next) {
       const result = await validateAndUpdate();
       res.status(200).json({
         message: "Success update donation",
-        data: result,
       });
     });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({
       message: "Update Failed",
-      data: error,
     });
   }
   // Function to perform the validation and update
