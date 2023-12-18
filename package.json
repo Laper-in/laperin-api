@@ -1,11 +1,23 @@
 {
-  "name": "account-api",
-  "version": "0.0.0",
+  "name": "laperin-api",
+  "description": "Laperin-api main api for laperin app and web",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "nodemon ./src/bin/www",
     "sequelize": "npx sequelize-cli"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Laper-in/laperin-api.git"
+  },
+  "keywords": [],
+  "author": "Moh Rizaldi Farhan , CH2-PS056-TEAMS",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Laper-in/laperin-api/issues"
+  },
+  "homepage": "https://github.com/Laper-in/laperin-api#readme",
   "dependencies": {
     "@google-cloud/storage": "^7.7.0",
     "bcrypt": "^5.1.1",
