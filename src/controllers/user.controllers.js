@@ -30,6 +30,7 @@ async function signUp(req, res) {
     const newUser = await user.create({
       username,
       email,
+      role,
       password: hashedPassword,
       // Add other fields as needed
     });
