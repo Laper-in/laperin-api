@@ -94,14 +94,14 @@ For JWT (JSON Web Token) and Google Cloud Storage configuration, create a .env f
 
 The following section of the configuration contains information about your .env config.
 
-  ```json
-  {
+  ```bash
+  
     JWT_SECRET=your_jwt_secret_key
     REFRESH_TOKEN_SECRET=your_refresh_token_secret_key
     GCLOUD_PROJECT=your_gcloud_project_id
     GCS_KEYFILE=your_gcs_keyfile_path
     GCS_BUCKET=your_gcs_bucket_name
-  }
+  
   ```
 * `JWT_SECRET` - Secret key used for JWT (JSON Web Token) generation and verification.
 * `REFRESH_TOKEN_SECRET` - Secret key used for refreshing JWT tokens.
