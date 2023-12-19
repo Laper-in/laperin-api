@@ -8,6 +8,7 @@ const Validator = require("fastest-validator");
 const v = new Validator();
 const paginate = require("sequelize-paginate");
 const geolib = require('geolib');
+const { Op } = require("sequelize");
 
 
 async function createDonation(req, res, next) {
@@ -17,7 +18,7 @@ async function createDonation(req, res, next) {
     const data = {
       idDonation: nanoid(10),
       idUser: userId,
-      username: username,
+      username: username  ,
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
@@ -66,7 +67,7 @@ async function createDonation(req, res, next) {
     }
 
     // Create the donation in the database
-    const result = await donation.create(data);
+    // const result = await donation.create(data);
 
     res.status(201).json({
       message: "Donation Created Successfully",
