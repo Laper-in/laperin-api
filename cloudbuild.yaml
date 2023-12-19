@@ -1,9 +1,9 @@
-# Instalasi dependencies
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['install']
-# Menjalankan API
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['start']
-# Deploy aplikasi ke App Engine
-- name: 'gcr.io/cloud-builders/gcloud'
-  args: ['app', 'deploy']
+steps:
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['run', 'start']
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['app', 'deploy']
