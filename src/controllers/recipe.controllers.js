@@ -285,8 +285,7 @@ async function searchRecipeByName(req, res, next) {
     };
 
     if (result.docs.length === 0) {
-      res.status(200).json({
-      });
+      res.status(200).json({response});
     } else {
       res.status(200).json(response);
     }
