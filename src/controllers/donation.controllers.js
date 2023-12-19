@@ -13,7 +13,7 @@ const geolib = require('geolib');
 async function createDonation(req, res, next) {
   try {
     const userId = req.user.userId;
-    const username = req.user.usernames;
+    const username = req.user.username;
     const data = {
       idDonation: nanoid(10),
       idUser: userId,
@@ -30,7 +30,7 @@ async function createDonation(req, res, next) {
 
     const schema = {
       idUser: { type: "string", min: 5, max: 50, optional: true },
-      username: { type: "string", min: 5, max: 50, optional: true },
+      username: { type: "string", min: 5, max: 50, optional: false },
       name: { type: "string", min: 5, max: 255, optional: true },
       description: { type: "string", optional: true },
       category: { type: "string", min: 5, max: 255, optional: true },
@@ -122,12 +122,18 @@ async function getAllDonation(req, res, next) {
 }
 async function getAllClosestDonation(req, res, next) {
   try {
+    const userIdFromToken = req.user.userId;
+    const requestedUserId = userIdFromToken; 
+
     const userLon = parseFloat(req.params.lon);
     const userLat = parseFloat(req.params.lat);
 
-    // Fetch all donations from the database
-    const donations = await donation.findAll({ where: { isDone: 0 } });
-
+    const donations = await donation.findAll({
+      where: {
+        isDone: 0,
+        idUser: { [Op.ne]: requestedUserId }
+      }
+    });
     // Calculate distances from the user's location to each donation
     const donationsWithDistances = donations.map((donation) => {
       // Log values for debugging
@@ -139,7 +145,7 @@ async function getAllClosestDonation(req, res, next) {
         console.log('Skipping donation due to null coordinates');
         return null;
       }
-
+      
       const distance = geolib.getDistance(
         { latitude: userLat, longitude: userLon },
         { latitude: donation.lat, longitude: donation.lon }
