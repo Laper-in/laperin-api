@@ -72,7 +72,7 @@ async function getAllBookmarksByUserId(req, res, next) {
       const correspondingRecipe = recipesData.find((recipe) => recipe.id === bookmark.idRecipe);
       return {
         bookmark: bookmark,
-        recipe: correspondingRecipe,
+        // recipe: correspondingRecipe,
       };
     });
     const response = {
@@ -130,7 +130,7 @@ async function searchAllBookmarkByCategory(req, res, next) {
       const correspondingRecipe = recipesData.find((recipe) => recipe.id === bookmark.idRecipe);
       return correspondingRecipe ? {
         bookmark: bookmark,
-        recipe: correspondingRecipe,
+        // recipe: correspondingRecipe,
       } : null;
     }).filter(Boolean);
 
