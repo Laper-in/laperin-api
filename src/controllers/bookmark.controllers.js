@@ -55,11 +55,10 @@ async function getAllBookmarksByUserId(req, res, next) {
   //const page = parseInt(req.query.page, 10) || 1;
   //const pageSize = parseInt(req.query.pageSize, 10) || 10;
   try {   //{ count, rows: bookmarks } 
-    const bookmarks = await bookmark.findAndCountAll({
+    const bookmarks = await bookmark.findAll({
       where: { idUser: userId },
-      // limit: pageSize,
-      offset: (page - 1) * pageSize,
     });
+
     const idRecipes = bookmarks.map((bookmark) => bookmark.idRecipe);
     const recipesData = await recipe.findAll({
       where: {
@@ -68,6 +67,7 @@ async function getAllBookmarksByUserId(req, res, next) {
         },
       },
     });
+
     const bookmarksWithRecipes = bookmarks.map((bookmark) => {
       const correspondingRecipe = recipesData.find((recipe) => recipe.id === bookmark.idRecipe);
       return {
@@ -77,11 +77,10 @@ async function getAllBookmarksByUserId(req, res, next) {
     });
     const response = {
       message: "Read bookmarks success",
-      total_count: count,
-      // total_pages: Math.ceil(count / pageSize),
-      // current_page: page,
+      // total_count: bookmarks.length,
       data: bookmarksWithRecipes,
     };
+
     res.status(200).json(response);
   } catch (err) {
     console.error(err);
