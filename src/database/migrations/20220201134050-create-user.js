@@ -18,18 +18,22 @@
         },
         fullname: {
           type: Sequelize.STRING(100),
+          defaultValue: 'Belum diisi',
         },
         password: {
           type: Sequelize.STRING(255),
         },
         image: {
           type: Sequelize.STRING(100),
+          defaultValue: 'https://i.ibb.co/k6xbKDL/DEFAULT-IMAGE.png',
         },
         alamat: {
           type: Sequelize.STRING(255),
+          defaultValue: 'Belum diisi',
         },
         telephone: {
           type: Sequelize.BIGINT(20),
+          defaultValue  : 0,
         },
         role: {
           type: Sequelize.STRING(10),
