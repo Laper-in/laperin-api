@@ -358,7 +358,7 @@ The user management API encompasses a range of endpoints to facilitate diverse o
 </details>
 
 #### **RECIPES**
-This set of API endpoints enables the management of recipes. The POST endpoint creates a new recipe, requiring authentication tokens, admin rights, and blacklist verification, supporting image and video uploads. The GET endpoint retrieves all recipes, and GET/:id fetches details for a specific recipe. The PATCH/:id endpoint updates a recipe, allowing image replacement, with authentication, admin, and blacklist checks. The DELETE/:id endpoint deletes a recipe, requiring user ownership validation. Additional GET endpoints enable recipe searches by name, ID, category, and ingredient. Each endpoint serves a specific function in the recipe management system.
+This set of API endpoints enables the management of recipes. The POST endpoint creates a new recipe, requiring authentication tokens, admin rights, and blacklist verification, supporting image and video uploads. The GET endpoint retrieves all recipes, and GET `/:id` fetches details for a specific recipe. The PATCH `/:id` endpoint updates a recipe, allowing image replacement, with authentication, admin, and blacklist checks. The DELETE `/:id` endpoint deletes a recipe, requiring user ownership validation. Additional GET endpoints enable recipe searches by name, ID, category, and ingredient. Each endpoint serves a specific function in the recipe management system.
 <details>
   <summary>Recipe model</summary>
 
@@ -614,3 +614,74 @@ This set of API endpoints enables the management of recipes. The POST endpoint c
 
   ---
 </details>
+
+#### **BOOKMARKS**
+This collection of API endpoints empowers the administration of bookmarked items. The POST endpoint facilitates the creation of new bookmarks, demanding authentication tokens, refresh tokens, and blacklist verification, while also implementing image and video upload functionalities. The GET endpoint retrieves all bookmarks associated with a particular user, and the GET `/search` endpoint allows users to explore bookmarks by category. The DELETE `/:id` endpoint enables users to delete a bookmark based on its unique identifier, ensuring secure removal. Each endpoint plays a crucial role in providing diverse and secure functionalities for the management of bookmarked items within the system.
+<details>
+  <summary>Bookmarks model</summary>
+
+#### Bookmarks Model
+  ---
+</details>
+
+<details>
+  <summary>End Point</summary>
+
+#### Bookmarks Request Response
+```json
+
+```
+</details>
+
+#### **DONATIONS**
+This set of API endpoints facilitates the management of donations. The POST endpoint, accessible via the `"/"` route, allows users to create new donations, supporting image uploads through the use of the upload.single("image") middleware. Authentication tokens, refresh tokens, and blacklist verification are required for secure donation creation. The GET endpoint, accessed through` "/"`, retrieves all donations, ensuring authenticated access and blacklist checks. For user-specific donations, the GET `"/user/"` endpoint filters and returns donations associated with a particular user, implementing ownership verification and blacklist checks. The GET `"/closest/:lon/:lat"` endpoint retrieves donations based on proximity using longitude and latitude parameters. Individual donation details are accessible through the GET `"/:id"` endpoint, and the DELETE `"/:id"` endpoint enables the removal of a specific donation, enforcing ownership validation and blacklist verification. Lastly, the PATCH `"/:id"` endpoint allows users to update a donation, supporting image replacement while enforcing authentication, ownership, and blacklist checks. Each endpoint serves a specific function in the comprehensive donation management system, combining security and functionality to enhance the overall user experience.
+<details>
+  <summary>Donations model</summary>
+
+#### Donations Model
+  ---
+</details>
+
+<details>
+  <summary>End Point</summary>
+
+#### Donations Request Response
+```json
+
+```
+</details>
+
+#### **INGREDIENTS**
+This collection of API endpoints facilitates the management of ingredients within the system. The GET endpoint, accessed via the `"/"` route, retrieves a comprehensive list of all available ingredients. The POST endpoint, available through `"/"`, enables authenticated users with administrative rights to create new ingredients, requiring authentication tokens, refresh tokens, and blacklist verification. Image uploads are supported through the upload.single('image') middleware. The PATCH `"/:id"` endpoint allows users to update an existing ingredient, supporting image replacement while enforcing authentication and blacklist checks. To remove a specific ingredient, the DELETE `"/:id"` endpoint requires authentication tokens, refresh tokens, user ownership validation, and blacklist verification. The GET `"/search"` endpoint allows users to search for ingredients by name, requiring authentication tokens, refresh tokens, and executing the search based on the ingredient's name. Each endpoint serves a specific function in the ingredient management system, ensuring both functionality and security are paramount in enhancing the overall user experience.
+<details>
+  <summary>Ingredients model</summary>
+
+#### Ingredients Model
+  ---
+</details>
+
+<details>
+  <summary>End Point</summary>
+
+#### Ingredients Request Response
+```json
+
+```
+</details>
+
+#### **MESSAGE**
+This collection of API endpoints focuses on message management within the system. The GET endpoint, accessible via the `"/"` route, retrieves all messages, providing users with a comprehensive overview. The POST endpoint, available through `"/"`, allows users to create new messages, necessitating authentication tokens, refresh tokens, and blacklist verification for secure message creation. The PATCH "`/:id`" endpoint facilitates the modification of an existing message, enforcing authentication and blacklist checks. To delete a specific message, the DELETE `"/:id"` endpoint requires authentication tokens, refresh tokens, and checks for ownership validation and blacklist verification. Each endpoint serves a distinct function in the message management system, combining security measures with practical features to enhance the overall user experience.
+<details>
+  <summary>Message model</summary>
+
+#### Message Model
+  ---
+</details>
+
+<details>
+  <summary>End Point</summary>
+
+#### Message Request Response
+```json
+
+```
