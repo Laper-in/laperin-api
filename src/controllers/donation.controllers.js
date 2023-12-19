@@ -67,7 +67,7 @@ async function createDonation(req, res, next) {
     }
 
     // Create the donation in the database
-    // const result = await donation.create(data);
+    await donation.create(data);
 
     res.status(201).json({
       message: "Donation Created Successfully",
