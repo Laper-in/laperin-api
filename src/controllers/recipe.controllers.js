@@ -285,8 +285,7 @@ async function searchRecipeByName(req, res, next) {
     };
 
     if (result.docs.length === 0) {
-      res.status(404).json({
-        message: "Recipe not found",
+      res.status(200).json({
       });
     } else {
       res.status(200).json(response);
