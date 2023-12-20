@@ -1,4 +1,4 @@
-const { bookmark , recipe  } = require("../database/models");
+const { bookmark, recipe } = require("../database/models");
 const { Op } = require("sequelize");
 const Validator = require("fastest-validator");
 const v = new Validator();
@@ -12,7 +12,9 @@ async function createBookmark(req, res, next) {
     createdAt: new Date(),
   };
   if (req.user.userId !== data.idUser) {
-    return res.status(403).json({ message: "Forbidden: User IDs do not match" });
+    return res
+      .status(403)
+      .json({ message: "Forbidden: User IDs do not match" });
   }
   const schema = {
     idUser: { type: "string", min: 5, max: 50, optional: false },
@@ -54,7 +56,8 @@ async function getAllBookmarksByUserId(req, res, next) {
   const userId = req.user.userId; // Gunakan userId dari JWT
   //const page = parseInt(req.query.page, 10) || 1;
   //const pageSize = parseInt(req.query.pageSize, 10) || 10;
-  try {   //{ count, rows: bookmarks } 
+  try {
+    //{ count, rows: bookmarks }
     const bookmarks = await bookmark.findAll({
       where: { idUser: userId },
     });
@@ -69,7 +72,9 @@ async function getAllBookmarksByUserId(req, res, next) {
     });
 
     const bookmarksWithRecipes = bookmarks.map((bookmark) => {
-      const correspondingRecipe = recipesData.find((recipe) => recipe.id === bookmark.idRecipe);
+      const correspondingRecipe = recipesData.find(
+        (recipe) => recipe.id === bookmark.idRecipe
+      );
       return {
         bookmark: bookmark,
         // recipe: correspondingRecipe,
@@ -93,14 +98,16 @@ async function searchAllBookmarkByCategory(req, res, next) {
   const userId = req.user.userId;
   const page = parseInt(req.query.page, 10) || 1;
   const pageSize = parseInt(req.query.pageSize, 10) || 10;
-  const category = req.query.category; 
+  const category = req.query.category;
 
   try {
-    const categoryCondition = category ? {
-      category: {
-        [Op.like]: `%${category}%`,
-      },
-    } : {};
+    const categoryCondition = category
+      ? {
+          category: {
+            [Op.like]: `%${category}%`,
+          },
+        }
+      : {};
     const { count, rows: bookmarks } = await bookmark.findAndCountAll({
       where: { idUser: userId },
       limit: pageSize,
@@ -125,13 +132,19 @@ async function searchAllBookmarkByCategory(req, res, next) {
         },
       });
     }
-    const bookmarksWithRecipes = bookmarks.map((bookmark) => {
-      const correspondingRecipe = recipesData.find((recipe) => recipe.id === bookmark.idRecipe);
-      return correspondingRecipe ? {
-        bookmark: bookmark,
-        recipe: correspondingRecipe,
-      } : null;
-    }).filter(Boolean);
+    const bookmarksWithRecipes = bookmarks
+      .map((bookmark) => {
+        const correspondingRecipe = recipesData.find(
+          (recipe) => recipe.id === bookmark.idRecipe
+        );
+        return correspondingRecipe
+          ? {
+              bookmark: bookmark,
+              recipe: correspondingRecipe,
+            }
+          : null;
+      })
+      .filter(Boolean);
 
     const response = {
       message: "Search bookmarks by category success",

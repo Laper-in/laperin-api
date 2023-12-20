@@ -245,14 +245,13 @@ async function deleteFileFromGCS(fileUrl) {
     const fileName = fileUrl.split("/").pop();
     const folderPath = fileUrl.includes("images") ? "images" : "videos";
     const bucketFile = bucket.file(`public/recipe/${folderPath}/${fileName}`);
-    
+
     await bucketFile.delete();
     console.log("File deleted from GCS successfully");
   } catch (err) {
     console.error("Error deleting file from GCS:", err);
   }
 }
-
 
 async function searchRecipeByName(req, res, next) {
   const searchTerm = req.query.q;
@@ -273,7 +272,7 @@ async function searchRecipeByName(req, res, next) {
       page: page,
       paginate: pageSize,
       where: searchQuery,
-      order: [['name', 'ASC']], // Sort by name in ascending order
+      order: [["name", "ASC"]], // Sort by name in ascending order
     });
 
     const response = {
@@ -285,7 +284,7 @@ async function searchRecipeByName(req, res, next) {
     };
 
     if (result.docs.length === 0) {
-      res.status(200).json({response});
+      res.status(200).json({ response });
     } else {
       res.status(200).json(response);
     }
@@ -302,7 +301,7 @@ async function searchRecipeById(req, res, next) {
 
   try {
     // Convert the comma-separated string into an array of string IDs
-    const idArray = recipeIds.split(',');
+    const idArray = recipeIds.split(",");
 
     let searchQuery = {};
     if (idArray.length > 0) {
@@ -317,11 +316,11 @@ async function searchRecipeById(req, res, next) {
       page: page,
       paginate: pageSize,
       where: searchQuery,
-      order: [['name', 'ASC']], 
+      order: [["name", "ASC"]],
     });
 
     const response = {
-      message : "Success fetch recipe by id",
+      message: "Success fetch recipe by id",
       total_count: result.total,
       total_pages: result.pages,
       current_page: result.page,
@@ -347,13 +346,14 @@ async function searchRecipeByCategory(req, res, next) {
   const category = req.query.q;
 
   try {
-    const categoryCondition = category ? {
-      category: {
-        [Op.like]: `%${category}%`,
-      },
-    } : {};
-    console.log('Input category:', category);
-
+    const categoryCondition = category
+      ? {
+          category: {
+            [Op.like]: `%${category}%`,
+          },
+        }
+      : {};
+    console.log("Input category:", category);
 
     const { count, rows: recipes } = await recipe.findAndCountAll({
       where: {
@@ -385,12 +385,14 @@ async function searchRecipeByIngredient(req, res, next) {
   const ingredient = req.query.q;
 
   try {
-    const ingredientsCondition = ingredient ? {
-      ingredient: {
-        [Op.like]: `%${ingredient}%`,
-      },
-    } : {};
-    console.log('Input ingredients:', ingredient);
+    const ingredientsCondition = ingredient
+      ? {
+          ingredient: {
+            [Op.like]: `%${ingredient}%`,
+          },
+        }
+      : {};
+    console.log("Input ingredients:", ingredient);
 
     const { count, rows: recipes } = await recipe.findAndCountAll({
       where: {

@@ -1,15 +1,20 @@
 const { donation } = require("../database/models");
 const { nanoid } = require("nanoid");
-const { uploadToBucket ,bucket } = require("../middlewares/gcsMiddleware");
+const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const {
-  generateAccessToken, clearToken, authData, isUserOwner,isDonationOwner, isAdmin,isUserDeleted,
-} = require('../middlewares/auth');
+  generateAccessToken,
+  clearToken,
+  authData,
+  isUserOwner,
+  isDonationOwner,
+  isAdmin,
+  isUserDeleted,
+} = require("../middlewares/auth");
 const Validator = require("fastest-validator");
 const v = new Validator();
 const paginate = require("sequelize-paginate");
-const geolib = require('geolib');
+const geolib = require("geolib");
 const { Op } = require("sequelize");
-
 
 async function createDonation(req, res, next) {
   try {
@@ -18,7 +23,7 @@ async function createDonation(req, res, next) {
     const data = {
       idDonation: nanoid(10),
       idUser: userId,
-      username: username  ,
+      username: username,
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
@@ -51,13 +56,17 @@ async function createDonation(req, res, next) {
     if (req.file) {
       const destinationFolder = "donations";
       const fileInfo = await new Promise((resolve, reject) => {
-        uploadToBucket(req.file, (err, fileInfo) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(fileInfo);
-          }
-        }, destinationFolder);
+        uploadToBucket(
+          req.file,
+          (err, fileInfo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(fileInfo);
+            }
+          },
+          destinationFolder
+        );
       });
 
       console.log("File uploaded to GCS:", fileInfo);
@@ -109,7 +118,10 @@ async function getAllDonation(req, res, next) {
           ...donation.dataValues,
           distance: geolib.getDistance(
             { latitude: userLat, longitude: userLon },
-            { latitude: parseFloat(donation.lat), longitude: parseFloat(donation.lon) }
+            {
+              latitude: parseFloat(donation.lat),
+              longitude: parseFloat(donation.lon),
+            }
           ),
         };
       }),
@@ -118,13 +130,13 @@ async function getAllDonation(req, res, next) {
     res.status(200).json(response);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error fetching donations', error: err });
+    res.status(500).json({ message: "Error fetching donations", error: err });
   }
 }
 async function getAllClosestDonation(req, res, next) {
   try {
     const userIdFromToken = req.user.userId;
-    const requestedUserId = userIdFromToken; 
+    const requestedUserId = userIdFromToken;
 
     const userLon = parseFloat(req.params.lon);
     const userLat = parseFloat(req.params.lat);
@@ -132,21 +144,24 @@ async function getAllClosestDonation(req, res, next) {
     const donations = await donation.findAll({
       where: {
         isDone: 0,
-        idUser: { [Op.ne]: requestedUserId }
-      }
+        idUser: { [Op.ne]: requestedUserId },
+      },
     });
     // Calculate distances from the user's location to each donation
     const donationsWithDistances = donations.map((donation) => {
       // Log values for debugging
-      console.log('User Location:', { latitude: userLat, longitude: userLon });
-      console.log('Donation Location:', { latitude: donation.lat, longitude: donation.lon });
+      console.log("User Location:", { latitude: userLat, longitude: userLon });
+      console.log("Donation Location:", {
+        latitude: donation.lat,
+        longitude: donation.lon,
+      });
 
       // Check for null values
       if (donation.lat === null || donation.lon === null) {
-        console.log('Skipping donation due to null coordinates');
+        console.log("Skipping donation due to null coordinates");
         return null;
       }
-      
+
       const distance = geolib.getDistance(
         { latitude: userLat, longitude: userLon },
         { latitude: donation.lat, longitude: donation.lon }
@@ -159,7 +174,9 @@ async function getAllClosestDonation(req, res, next) {
     const validDonationsWithDistances = donationsWithDistances.filter(Boolean);
 
     // Sort the donations based on distance in ascending order (closest first)
-    const sortedDonations = validDonationsWithDistances.sort((a, b) => a.distance - b.distance);
+    const sortedDonations = validDonationsWithDistances.sort(
+      (a, b) => a.distance - b.distance
+    );
 
     // Paginate the sorted donations
     const page = parseInt(req.query.page, 10) || 1;
@@ -180,13 +197,15 @@ async function getAllClosestDonation(req, res, next) {
     res.status(200).json(response);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error fetching closest donation', error: err });
+    res
+      .status(500)
+      .json({ message: "Error fetching closest donation", error: err });
   }
 }
 async function getAllDonationByUserId(req, res, next) {
   try {
     const userIdFromToken = req.user.userId;
-    const requestedUserId = userIdFromToken; 
+    const requestedUserId = userIdFromToken;
 
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
@@ -241,32 +260,35 @@ async function getDetailDonation(req, res, next) {
 }
 async function deleteDonation(req, res, next) {
   const donationId = req.params.id || req.query.id;
-  const userId = req.user.userId; 
+  const userId = req.user.userId;
   if (!userId) {
     return res.status(401).json({
       message: "Unauthorized. User information not available.",
     });
   }
-  console.log('Deleting donation with id:', donationId);
-  donation.update(
-    { isDone: 1, deletedAt: new Date(), deletedBy: userId },
-    { where: { idDonation: donationId, idUser: userId } }
-  ).then((updatedRows) => {
-    if (updatedRows[0] > 0) {
-      res.status(200).json({
-        message: "Donation marked as deleted successfully",
+  console.log("Deleting donation with id:", donationId);
+  donation
+    .update(
+      { isDone: 1, deletedAt: new Date(), deletedBy: userId },
+      { where: { idDonation: donationId, idUser: userId } }
+    )
+    .then((updatedRows) => {
+      if (updatedRows[0] > 0) {
+        res.status(200).json({
+          message: "Donation marked as deleted successfully",
+        });
+      } else {
+        res.status(404).json({
+          message: "Donation not found or unauthorized",
+        });
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({
+        message: "Soft delete donation failed",
       });
-    } else {
-      res.status(404).json({
-        message: "Donation not found or unauthorized",
-      });
-    }
-  }).catch((err) => {
-    console.error(err);
-    res.status(500).json({
-      message: "Soft delete donation failed",
     });
-  });
 }
 async function updateDonation(req, res, next) {
   const userId = req.user.userId;
@@ -312,13 +334,17 @@ async function updateDonation(req, res, next) {
     if (req.file) {
       const destinationFolder = "donations";
       const fileInfo = await new Promise((resolve, reject) => {
-        uploadToBucket(req.file, (err, fileInfo) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(fileInfo);
-          }
-        }, destinationFolder);
+        uploadToBucket(
+          req.file,
+          (err, fileInfo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(fileInfo);
+            }
+          },
+          destinationFolder
+        );
       });
       console.log("File uploaded to bucket:", fileInfo);
       data.image = fileInfo.imageUrl;
@@ -357,16 +383,16 @@ async function updateDonation(req, res, next) {
     } catch (err) {
       console.error("Error deleting old image:", err);
     }
-}
+  }
 }
 paginate.paginate(donation);
 
 module.exports = {
-    createDonation,
-    getAllDonation,
-    getAllClosestDonation,
-    getAllDonationByUserId,
-    getDetailDonation,
-    deleteDonation,
-    updateDonation,
+  createDonation,
+  getAllDonation,
+  getAllClosestDonation,
+  getAllDonationByUserId,
+  getDetailDonation,
+  deleteDonation,
+  updateDonation,
 };
