@@ -24,6 +24,7 @@ async function createDonation(req, res, next) {
       idDonation: nanoid(10),
       idUser: userId,
       username: username,
+      telephone: req.body.telephone,
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
@@ -35,11 +36,12 @@ async function createDonation(req, res, next) {
     };
 
     const schema = {
-      idUser: { type: "string", min: 5, max: 50, optional: true },
+      idUser: { type: "string", min: 5, max: 50, optional: false },
       username: { type: "string", min: 5, max: 50, optional: false },
-      name: { type: "string", min: 5, max: 255, optional: true },
-      description: { type: "string", optional: true },
-      category: { type: "string", min: 5, max: 255, optional: true },
+      telephone: { type: "string", min: 10, max: 12, optional: false },
+      name: { type: "string", min: 5, max: 255, optional: false },
+      description: { type: "string", min: 5, max: 255, optional: false },
+      category: { type: "string", max: 20, optional: false },
     };
 
     // VALIDATE DATA

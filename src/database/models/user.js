@@ -7,6 +7,17 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
     }
+
+    // Define a static method to fetch a user by ID
+    static async getUserById(userId) {
+      try {
+        const user = await this.findByPk(userId);
+        return user;
+      } catch (error) {
+        console.error('Error fetching user by ID:', error);
+        return null;
+      }
+    }
   }
 
   User.init(

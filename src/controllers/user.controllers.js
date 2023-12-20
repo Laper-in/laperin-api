@@ -1,6 +1,7 @@
 const { user } = require("../database/models");
 const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const Validator = require("fastest-validator");
+const validateUser = require("../validators/validator");
 const v = new Validator();
 const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
@@ -18,32 +19,30 @@ const paginate = require("sequelize-paginate");
 async function signUp(req, res) {
   console.log("Entire Request Body:", req.body);
   const { username, email, password } = req.body;
+
+  // Validate user input
+  const validation = await validateUser({ email, username ,password });
+  if (validation.error) {
+    return res.status(400).json({ error: validation.error });
+  }
+
   try {
-    // Check if required fields are provided
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Username, email, and password are required" });
-    }
-    // Check if a user with the provided email already exists
     const existingUser = await user.findOne({ where: { email } });
     if (existingUser) {
       return res
-        .status(400)
+        .status(404)
         .json({ error: "User with this email already exists" });
     }
-    // Trim the password and then hash it
     const trimmedPassword = password.trim();
     const hashedPassword = await bcrypt.hash(trimmedPassword, 10);
-    // Create a new user
     const newUser = await user.create({
       username,
       email,
       role: "user",
       isDeleted: false,
       password: hashedPassword,
-      // Add other fields as needed
     });
+
     // Uncomment code below if you want to generate access and refresh tokens
     const accessToken = generateAccessToken(newUser);
     // const refreshToken = generateRefreshToken(newUser);
@@ -61,6 +60,7 @@ async function signUp(req, res) {
 }
 async function signIn(req, res) {
   const { username, password } = req.body;
+
   try {
     const foundUser = await user.findOne({ where: { username } });
     if (!foundUser) {
@@ -86,13 +86,11 @@ async function signIn(req, res) {
       email: foundUser.email,
       role: foundUser.role,
     };
-    res
-      .status(200)
-      .json({
-        message: `Login User ID ${foundUser.id} Success`,
-        accessToken,
-        data: userResponse,
-      });
+    res.status(200).json({
+      message: `Login User ID ${foundUser.id} Success`,
+      accessToken,
+      data: userResponse,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -116,13 +114,11 @@ async function signOut(req, res) {
       const { userId, username } = req.user;
       // Clear (blacklist) the token
       clearToken(token);
-      res
-        .status(200)
-        .json({
-          message: `Sign-out successful for user ID ${userId} Usernames ${username}`,
-          userId,
-          usernames,
-        });
+      res.status(200).json({
+        message: `Sign-out successful for user ID ${userId} Usernames ${username}`,
+        userId,
+        usernames,
+      });
     } else {
       res
         .status(401)
@@ -213,8 +209,12 @@ async function updateUsers(req, res, next) {
   // Function to perform the validation and update
   async function validateAndUpdate() {
     const schema = {
-      email: { type: "email", optional: true },
-      password: { type: "string", min: 5, max: 255, optional: true },
+      email: { type: "email", min: 5, max: 255, optional: false },
+      password: { type: "string", min: 5, max: 255, optional: false },
+      fullname: { type: "string", optional: false },
+      alamat: { type: "string", min: 5, max: 255, optional: false },
+
+      telephone: { type: "string", min: 10, max: 12, optional: false },
     };
 
     const validationResult = v.validate(data, schema);
