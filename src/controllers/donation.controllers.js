@@ -1,4 +1,4 @@
-const { donation } = require("../database/models");
+const { donation , user } = require("../database/models");
 const { nanoid } = require("nanoid");
 const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const {
@@ -20,11 +20,14 @@ async function createDonation(req, res, next) {
   try {
     const userId = req.user.userId;
     const username = req.user.username;
+    const userData = await user.getUserById(userId);
     const data = {
       idDonation: nanoid(10),
       idUser: userId,
       username: username,
-      telephone: req.body.telephone,
+      fullname: userData.fullname,
+      telephone: userData.telephone,
+      imageUsr: userData.image,
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
@@ -38,7 +41,17 @@ async function createDonation(req, res, next) {
     const schema = {
       idUser: { type: "string", min: 5, max: 50, optional: false },
       username: { type: "string", min: 5, max: 50, optional: false },
-      telephone: { type: "string", min: 10, max: 12, optional: false },
+      telephone: { 
+        type: "number", 
+        pattern: /^[0-9]+$/,
+        custom: (value) => {
+          const telephoneNumber = parseInt(value, 10);
+          if (isNaN(telephoneNumber) || telephoneNumber > Number.MAX_SAFE_INTEGER) {
+            throw new Error("Invalid telephone number");
+          }
+        },
+        optional: false 
+      },
       name: { type: "string", min: 5, max: 255, optional: false },
       description: { type: "string", min: 5, max: 255, optional: false },
       category: { type: "string", max: 20, optional: false },
