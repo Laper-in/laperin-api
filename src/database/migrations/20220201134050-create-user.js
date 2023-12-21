@@ -48,7 +48,7 @@
           type: Sequelize.DATE,
         },
         updatedBy: {
-          type: Sequelize.INTEGER,
+          type: Sequelize.STRING,
         },
         deletedBy: {
           type: Sequelize.INTEGER,

@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       alamat: DataTypes.STRING(255),
       telephone: DataTypes.BIGINT(20),
       role: DataTypes.STRING(10),
-      updatedBy: DataTypes.INTEGER,
+      updatedBy: DataTypes.STRING,
       deletedBy: DataTypes.INTEGER,
       deletedAt: DataTypes.DATE,
       isDeleted: DataTypes.BOOLEAN,
