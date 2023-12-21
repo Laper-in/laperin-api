@@ -46,7 +46,7 @@ async function createDonation(req, res, next) {
       containsBadWords(req.body.name)
     ) {
       return res.status(400).json({
-        message: "Description contains inappropriate words",
+        message: "Input kata mengandung kata tidak sopan",
       });
     }
 

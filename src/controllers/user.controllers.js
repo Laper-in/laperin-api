@@ -25,7 +25,7 @@ async function signUp(req, res) {
     containsBadWords(req.body.email)
   ) {
     return res.status(400).json({
-      message: "Input contains inappropriate words",    });
+      message: "Input kata mengandung kata tidak sopan",    });
   }
 
   // Validate user input
@@ -198,7 +198,7 @@ async function updateUsers(req, res, next) {
     containsBadWords(req.body.alamat)
   ) {
     return res.status(400).json({
-      message: "Input contains inappropriate words",    });
+      message: "Input kata mengandung kata tidak sopan",    });
   }
 
   try {
