@@ -1,5 +1,7 @@
 const { donation , user } = require("../database/models");
 const { nanoid } = require("nanoid");
+const { Op } = require("sequelize");
+const { containsBadWords } = require("../validators/validator"); 
 const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const {
   generateAccessToken,
@@ -14,7 +16,7 @@ const Validator = require("fastest-validator");
 const v = new Validator();
 const paginate = require("sequelize-paginate");
 const geolib = require("geolib");
-const { Op } = require("sequelize");
+
 
 async function createDonation(req, res, next) {
   try {
@@ -38,6 +40,16 @@ async function createDonation(req, res, next) {
       createdAt: new Date(),
     };
 
+    if (
+      containsBadWords(req.body.description) ||
+      containsBadWords(req.body.category) ||
+      containsBadWords(req.body.name)
+    ) {
+      return res.status(400).json({
+        message: "Description contains inappropriate words",
+      });
+    }
+
     const schema = {
       idUser: { type: "string", min: 5, max: 50, optional: false },
       username: { type: "string", min: 5, max: 50, optional: false },
@@ -57,7 +69,6 @@ async function createDonation(req, res, next) {
       category: { type: "string", max: 20, optional: false },
     };
 
-    // VALIDATE DATA
     const validationResult = v.validate(data, schema);
 
     if (validationResult !== true) {

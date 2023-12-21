@@ -1,7 +1,7 @@
 const { user } = require("../database/models");
 const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const Validator = require("fastest-validator");
-const validateUser = require("../validators/validator");
+const {validateUser , containsBadWords} = require("../validators/validator");
 const v = new Validator();
 const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
@@ -19,6 +19,14 @@ const paginate = require("sequelize-paginate");
 async function signUp(req, res) {
   console.log("Entire Request Body:", req.body);
   const { username, email, password } = req.body;
+
+  if (
+    containsBadWords(req.body.username) ||
+    containsBadWords(req.body.email)
+  ) {
+    return res.status(400).json({
+      message: "Input contains inappropriate words",    });
+  }
 
   // Validate user input
   const validation = await validateUser({ email, username ,password });
@@ -64,7 +72,7 @@ async function signIn(req, res) {
   try {
     const foundUser = await user.findOne({ where: { username } });
     if (!foundUser) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
     const userDeleted = await isUserDeleted(foundUser.id);
     if (userDeleted) {
@@ -73,11 +81,11 @@ async function signIn(req, res) {
         .json({ error: "Forbidden: User account has been deleted" });
     }
     if (!password) {
-      return res.status(400).json({ error: "Password is required" });
+      return res.status(400).json({ message: "Password is required" });
     }
     const passwordMatch = await bcrypt.compare(password, foundUser.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: "Invalid password" });
+      return res.status(401).json({ message: "Invalid password" });
     }
     const accessToken = generateAccessToken(foundUser);
     const userResponse = {
@@ -103,7 +111,7 @@ async function signOut(req, res) {
     if (!token) {
       return res
         .status(401)
-        .json({ error: "Unauthorized: Token not provided" });
+        .json({ message: "Unauthorized: Token not provided" });
     }
     if (authData.blacklistedTokens.includes(token)) {
       return res
@@ -183,6 +191,15 @@ async function updateUsers(req, res, next) {
     updatedAt: new Date(),
     updatedBy: userId,
   };
+
+  if (
+    containsBadWords(req.body.email) ||
+    containsBadWords(req.body.fullname)||
+    containsBadWords(req.body.alamat)
+  ) {
+    return res.status(400).json({
+      message: "Input contains inappropriate words",    });
+  }
 
   try {
     // Check if the password field is provided
@@ -289,7 +306,7 @@ async function deleteUsers(req, res) {
       const userToDelete = await user.findByPk(userIdToDelete);
 
       if (!userToDelete) {
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ message: "User not found" });
       }
       if (userToDelete.isDeleted || userToDelete.deletedAt) {
         return res
@@ -299,7 +316,7 @@ async function deleteUsers(req, res) {
       if (userToDelete.role === "admin") {
         return res
           .status(403)
-          .json({ error: "Forbidden: Cannot delete an admin user" });
+          .json({ message: "Forbidden: Cannot delete an admin user" });
       }
       const deletedByUserId = req.user.userId;
       await user.update(
@@ -374,7 +391,7 @@ async function setStatusOnline(req, res) {
     const userToUpdate = await user.findByPk(userIdToUpdate);
 
     if (!userToUpdate) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     await user.update({ isOnline }, { where: { id: userIdToUpdate } });

@@ -1,13 +1,13 @@
 const Validator = require("fastest-validator");
 const { user } = require("../database/models");
-
+const indonesianBadwords  = require('indonesian-badwords');
+const badwordsArray = require('badwords/array');
 const v = new Validator();
 
 const schema = {
   email: { type: "email", unique: true },
   username: { type: "string", min: 1, max: 255, unique: true, pattern: /^[^\s]+$/ },
   password: { type: "string", min: 1, max: 255, unique: true, pattern: /^[^\s]+$/ },
-
 };
 
 const check = v.compile(schema);
@@ -45,4 +45,16 @@ async function validateUser(userInput) {
   return { isValid: true };
 }
 
-module.exports = validateUser;
+function containsBadWords(str) {
+  if (!str) {
+    return false;
+  }
+  const containsEnglishBadWords = badwordsArray.some(word => str.includes(word));
+  const containsIndonesianBadWords = indonesianBadwords.flag(str);
+
+  return containsEnglishBadWords || containsIndonesianBadWords;
+}
+
+
+// Correct export statement
+module.exports = { validateUser, containsBadWords };
