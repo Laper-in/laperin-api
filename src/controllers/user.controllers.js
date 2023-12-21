@@ -209,12 +209,9 @@ async function updateUsers(req, res, next) {
   // Function to perform the validation and update
   async function validateAndUpdate() {
     const schema = {
-      email: { type: "email", min: 5, max: 255, optional: false },
-      password: { type: "string", min: 5, max: 255, optional: false },
-      fullname: { type: "string", optional: false },
-      alamat: { type: "string", min: 5, max: 255, optional: false },
-
-      telephone: { type: "string", min: 10, max: 12, optional: false },
+      fullname: { type: "string",min: 5, max: 100, optional: true  },
+      alamat: { type: "string", min: 5, max: 255, optional: true },
+      telephone: { type: "string", min: 10, max: 12, optional: true },
     };
 
     const validationResult = v.validate(data, schema);
