@@ -211,7 +211,7 @@ async function updateUsers(req, res, next) {
     const schema = {
       fullname: { type: "string",min: 5, max: 100, optional: true  },
       alamat: { type: "string", min: 5, max: 255, optional: true },
-      telephone: { type: "string", min: 10, max: 12, optional: true },
+      telephone: { type: "string", min: 10, max: 13, optional: true },
     };
 
     const validationResult = v.validate(data, schema);
