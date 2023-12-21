@@ -133,6 +133,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-database/config/config.json
+public/src/database/config/config.json
 
 laperin-service-key.json
