@@ -132,3 +132,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+public/src/database/config/config.json
+
+laperin-service-key.json
