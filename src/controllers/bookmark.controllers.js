@@ -52,17 +52,23 @@ async function createBookmark(req, res, next) {
     }
   }
 }
-async function getAllBookmarksByUserId(req, res, next) {
-  const userId = req.user.userId; // Gunakan userId dari JWT
-  //const page = parseInt(req.query.page, 10) || 1;
-  //const pageSize = parseInt(req.query.pageSize, 10) || 10;
+function mergeCategories(categories) {
+  return [...new Set(categories)].join(", ");
+}
+
+async function getAllBookmarksCategoryByUserId(req, res, next) {
+  const userId = req.user.userId;
   try {
-    //{ count, rows: bookmarks }
     const bookmarks = await bookmark.findAll({
       where: { idUser: userId },
     });
-
     const idRecipes = bookmarks.map((bookmark) => bookmark.idRecipe);
+    if (idRecipes.length === 0) {
+      res.status(200).json({
+        message: "Read bookmarks success",
+      });
+      return;
+    }
     const recipesData = await recipe.findAll({
       where: {
         id: {
@@ -71,26 +77,29 @@ async function getAllBookmarksByUserId(req, res, next) {
       },
     });
 
+    const uniqueCategories = new Set();
+
     const bookmarksWithRecipes = bookmarks.map((bookmark) => {
       const correspondingRecipe = recipesData.find(
         (recipe) => recipe.id === bookmark.idRecipe
       );
-      return {
-        bookmark: bookmark,
-        // recipe: correspondingRecipe,
-      };
+
+      if (correspondingRecipe) {
+        const categories = correspondingRecipe.category.split(",");
+        categories.forEach((category) => uniqueCategories.add(category));
+      }
+
+      return null;
     });
+
     const response = {
-      message: "Read bookmarks success",
-      // total_count: bookmarks.length,
-      data: bookmarksWithRecipes,
+      data: mergeCategories([...uniqueCategories]),
     };
 
     res.status(200).json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      message: "Read bookmarks failed",
     });
   }
 }
@@ -191,7 +200,7 @@ paginate.paginate(bookmark);
 
 module.exports = {
   createBookmark,
-  getAllBookmarksByUserId,
+  getAllBookmarksCategoryByUserId,
   deleteBookmark,
   searchAllBookmarkByCategory,
 };

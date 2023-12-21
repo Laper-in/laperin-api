@@ -20,7 +20,7 @@ router.get(
   authenticateToken,
   authenticateRefreshToken,
   checkBlacklist,
-  bookmarkControllers.getAllBookmarksByUserId
+  bookmarkControllers.getAllBookmarksCategoryByUserId
 );
 router.get(
   "/search",
