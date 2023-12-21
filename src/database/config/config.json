@@ -15,9 +15,9 @@
   },
   "production": {
     "username": "root",
-    "password": "Bangkit2023!",
-    "database": "laperin_db_production",
-    "host": "34.101.57.96",
+    "password": null,
+    "database": "",
+    "host": "",
     "dialect": "mysql"
   }
 }
