@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "laperin_db_development",
+    "database": "laperin_db_production",
     "host": "localhost",
     "dialect": "mysql"
   },

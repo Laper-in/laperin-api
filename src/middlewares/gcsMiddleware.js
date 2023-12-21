@@ -29,9 +29,9 @@ const uploadToBucket = (file, cb, destinationFolder) => {
     error.code = "LIMIT_FILE_SIZE";
     return cb(error, false);
   }
-  const folderPath = `public/${destinationFolder}/images`; 
-  const fileName = `${Date.now()}-${file.fieldname}.${ext}`; 
-  const bucketFile = bucket.file(`${folderPath}/${fileName}`); 
+  const folderPath = `public/${destinationFolder}/images`;
+  const fileName = `${Date.now()}-${file.fieldname}.${ext}`;
+  const bucketFile = bucket.file(`${folderPath}/${fileName}`);
   const stream = bucketFile.createWriteStream({
     metadata: {
       contentType: file.mimetype,
@@ -72,7 +72,7 @@ const uploadVideoToBucket = (file, cb, destinationFolder) => {
     return cb(error, false);
   }
 
-  const maxSize = 100 * 1024 * 1024; 
+  const maxSize = 100 * 1024 * 1024;
 
   if (file.size > maxSize) {
     const error = new Error("File size exceeds the limit (50MB)");

@@ -2,7 +2,7 @@ const { ingredient } = require("../database/models");
 const { nanoid } = require("nanoid");
 const Validator = require("fastest-validator");
 const { Op } = require("sequelize");
-const { uploadToBucket ,bucket } = require("../middlewares/gcsMiddleware");
+const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const v = new Validator();
 const paginate = require("sequelize-paginate");
 const { isAdmin } = require("../middlewares/auth");
@@ -15,7 +15,7 @@ async function createIngredient(req, res, next) {
     };
 
     const schema = {
-      name: { type: "string", min: 5, max: 50, optional: false },
+      name: { type: "string", min: 3, max: 50, optional: false },
     };
     // VALIDATE DATA
     const validationResult = v.validate(data, schema);
@@ -29,13 +29,17 @@ async function createIngredient(req, res, next) {
     if (req.file) {
       const destinationFolder = "ingredients";
       const fileInfo = await new Promise((resolve, reject) => {
-        uploadToBucket(req.file, (err, fileInfo) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(fileInfo);
-          }
-        }, destinationFolder);
+        uploadToBucket(
+          req.file,
+          (err, fileInfo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(fileInfo);
+            }
+          },
+          destinationFolder
+        );
       });
 
       console.log("File uploaded to GCS:", fileInfo);
@@ -64,7 +68,7 @@ async function getAllIngredient(req, res, next) {
 
   try {
     const result = await ingredient.findAndCountAll({
-      order: [['name', 'ASC']],
+      order: [["name", "ASC"]],
       limit: pageSize,
       offset: (page - 1) * pageSize,
     });
@@ -123,13 +127,17 @@ async function updateIngredient(req, res, next) {
     if (req.file) {
       const destinationFolder = "ingredients";
       const fileInfo = await new Promise((resolve, reject) => {
-        uploadToBucket(req.file, (err, fileInfo) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(fileInfo);
-          }
-        }, destinationFolder);
+        uploadToBucket(
+          req.file,
+          (err, fileInfo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(fileInfo);
+            }
+          },
+          destinationFolder
+        );
       });
       console.log("File uploaded to bucket:", fileInfo);
       data.image = fileInfo.imageUrl;
@@ -211,8 +219,8 @@ async function searchIngredientByName(req, res, next) {
       page: page,
       paginate: pageSize,
       where: searchQuery,
-      order: [['name', 'ASC']], // Sort by name in ascending order
-    }); 
+      order: [["name", "ASC"]], // Sort by name in ascending order
+    });
     const response = {
       message: "Success Get All Ingredients By Name",
       total_count: result.total,

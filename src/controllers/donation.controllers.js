@@ -1,23 +1,35 @@
-const { donation } = require("../database/models");
+const { donation , user } = require("../database/models");
 const { nanoid } = require("nanoid");
-const { uploadToBucket ,bucket } = require("../middlewares/gcsMiddleware");
+const { Op } = require("sequelize");
+const { containsBadWords } = require("../validators/validator"); 
+const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const {
-  generateAccessToken, clearToken, authData, isUserOwner,isDonationOwner, isAdmin,isUserDeleted,
-} = require('../middlewares/auth');
+  generateAccessToken,
+  clearToken,
+  authData,
+  isUserOwner,
+  isDonationOwner,
+  isAdmin,
+  isUserDeleted,
+} = require("../middlewares/auth");
 const Validator = require("fastest-validator");
 const v = new Validator();
 const paginate = require("sequelize-paginate");
-const geolib = require('geolib');
+const geolib = require("geolib");
 
 
 async function createDonation(req, res, next) {
   try {
     const userId = req.user.userId;
-    const username = req.user.usernames;
+    const username = req.user.username;
+    const userData = await user.getUserById(userId);
     const data = {
       idDonation: nanoid(10),
       idUser: userId,
       username: username,
+      fullname: userData.fullname,
+      telephone: userData.telephone,
+      imageUsr: userData.image,
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
@@ -28,15 +40,35 @@ async function createDonation(req, res, next) {
       createdAt: new Date(),
     };
 
+    if (
+      containsBadWords(req.body.description) ||
+      containsBadWords(req.body.category) ||
+      containsBadWords(req.body.name)
+    ) {
+      return res.status(400).json({
+        message: "Description contains inappropriate words",
+      });
+    }
+
     const schema = {
-      idUser: { type: "string", min: 5, max: 50, optional: true },
+      idUser: { type: "string", min: 5, max: 50, optional: false },
       username: { type: "string", min: 5, max: 50, optional: false },
-      name: { type: "string", min: 5, max: 255, optional: true },
-      description: { type: "string", optional: true },
-      category: { type: "string", min: 5, max: 255, optional: true },
+      telephone: { 
+        type: "number", 
+        pattern: /^[0-9]+$/,
+        custom: (value) => {
+          const telephoneNumber = parseInt(value, 10);
+          if (isNaN(telephoneNumber) || telephoneNumber > Number.MAX_SAFE_INTEGER) {
+            throw new Error("Invalid telephone number");
+          }
+        },
+        optional: false 
+      },
+      name: { type: "string", min: 5, max: 255, optional: false },
+      description: { type: "string", min: 5, max: 255, optional: false },
+      category: { type: "string", max: 20, optional: false },
     };
 
-    // VALIDATE DATA
     const validationResult = v.validate(data, schema);
 
     if (validationResult !== true) {
@@ -50,13 +82,17 @@ async function createDonation(req, res, next) {
     if (req.file) {
       const destinationFolder = "donations";
       const fileInfo = await new Promise((resolve, reject) => {
-        uploadToBucket(req.file, (err, fileInfo) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(fileInfo);
-          }
-        }, destinationFolder);
+        uploadToBucket(
+          req.file,
+          (err, fileInfo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(fileInfo);
+            }
+          },
+          destinationFolder
+        );
       });
 
       console.log("File uploaded to GCS:", fileInfo);
@@ -66,11 +102,11 @@ async function createDonation(req, res, next) {
     }
 
     // Create the donation in the database
-    const result = await donation.create(data);
+    await donation.create(data);
 
     res.status(201).json({
       message: "Donation Created Successfully",
-      data: result,
+      // data: result,
     });
   } catch (err) {
     console.error(err);
@@ -108,7 +144,10 @@ async function getAllDonation(req, res, next) {
           ...donation.dataValues,
           distance: geolib.getDistance(
             { latitude: userLat, longitude: userLon },
-            { latitude: parseFloat(donation.lat), longitude: parseFloat(donation.lon) }
+            {
+              latitude: parseFloat(donation.lat),
+              longitude: parseFloat(donation.lon),
+            }
           ),
         };
       }),
@@ -117,26 +156,35 @@ async function getAllDonation(req, res, next) {
     res.status(200).json(response);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error fetching donations', error: err });
+    res.status(500).json({ message: "Error fetching donations", error: err });
   }
 }
 async function getAllClosestDonation(req, res, next) {
   try {
+    const userIdFromToken = req.user.userId;
+    const requestedUserId = userIdFromToken;
+
     const userLon = parseFloat(req.params.lon);
     const userLat = parseFloat(req.params.lat);
 
-    // Fetch all donations from the database
-    const donations = await donation.findAll({ where: { isDone: 0 } });
-
+    const donations = await donation.findAll({
+      where: {
+        isDone: 0,
+        idUser: { [Op.ne]: requestedUserId },
+      },
+    });
     // Calculate distances from the user's location to each donation
     const donationsWithDistances = donations.map((donation) => {
       // Log values for debugging
-      console.log('User Location:', { latitude: userLat, longitude: userLon });
-      console.log('Donation Location:', { latitude: donation.lat, longitude: donation.lon });
+      console.log("User Location:", { latitude: userLat, longitude: userLon });
+      console.log("Donation Location:", {
+        latitude: donation.lat,
+        longitude: donation.lon,
+      });
 
       // Check for null values
       if (donation.lat === null || donation.lon === null) {
-        console.log('Skipping donation due to null coordinates');
+        console.log("Skipping donation due to null coordinates");
         return null;
       }
 
@@ -152,7 +200,9 @@ async function getAllClosestDonation(req, res, next) {
     const validDonationsWithDistances = donationsWithDistances.filter(Boolean);
 
     // Sort the donations based on distance in ascending order (closest first)
-    const sortedDonations = validDonationsWithDistances.sort((a, b) => a.distance - b.distance);
+    const sortedDonations = validDonationsWithDistances.sort(
+      (a, b) => a.distance - b.distance
+    );
 
     // Paginate the sorted donations
     const page = parseInt(req.query.page, 10) || 1;
@@ -173,13 +223,15 @@ async function getAllClosestDonation(req, res, next) {
     res.status(200).json(response);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error fetching closest donation', error: err });
+    res
+      .status(500)
+      .json({ message: "Error fetching closest donation", error: err });
   }
 }
 async function getAllDonationByUserId(req, res, next) {
   try {
     const userIdFromToken = req.user.userId;
-    const requestedUserId = userIdFromToken; 
+    const requestedUserId = userIdFromToken;
 
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
@@ -234,32 +286,35 @@ async function getDetailDonation(req, res, next) {
 }
 async function deleteDonation(req, res, next) {
   const donationId = req.params.id || req.query.id;
-  const userId = req.user.userId; 
+  const userId = req.user.userId;
   if (!userId) {
     return res.status(401).json({
       message: "Unauthorized. User information not available.",
     });
   }
-  console.log('Deleting donation with id:', donationId);
-  donation.update(
-    { isDone: 1, deletedAt: new Date(), deletedBy: userId },
-    { where: { idDonation: donationId, idUser: userId } }
-  ).then((updatedRows) => {
-    if (updatedRows[0] > 0) {
-      res.status(200).json({
-        message: "Donation marked as deleted successfully",
+  console.log("Deleting donation with id:", donationId);
+  donation
+    .update(
+      { isDone: 1, deletedAt: new Date(), deletedBy: userId },
+      { where: { idDonation: donationId, idUser: userId } }
+    )
+    .then((updatedRows) => {
+      if (updatedRows[0] > 0) {
+        res.status(200).json({
+          message: "Donation marked as deleted successfully",
+        });
+      } else {
+        res.status(404).json({
+          message: "Donation not found or unauthorized",
+        });
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({
+        message: "Soft delete donation failed",
       });
-    } else {
-      res.status(404).json({
-        message: "Donation not found or unauthorized",
-      });
-    }
-  }).catch((err) => {
-    console.error(err);
-    res.status(500).json({
-      message: "Soft delete donation failed",
     });
-  });
 }
 async function updateDonation(req, res, next) {
   const userId = req.user.userId;
@@ -279,14 +334,12 @@ async function updateDonation(req, res, next) {
       const result = await validateAndUpdate();
       res.status(200).json({
         message: "Success update donation",
-        data: result,
       });
     });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({
       message: "Update Failed",
-      data: error,
     });
   }
   // Function to perform the validation and update
@@ -307,13 +360,17 @@ async function updateDonation(req, res, next) {
     if (req.file) {
       const destinationFolder = "donations";
       const fileInfo = await new Promise((resolve, reject) => {
-        uploadToBucket(req.file, (err, fileInfo) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(fileInfo);
-          }
-        }, destinationFolder);
+        uploadToBucket(
+          req.file,
+          (err, fileInfo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(fileInfo);
+            }
+          },
+          destinationFolder
+        );
       });
       console.log("File uploaded to bucket:", fileInfo);
       data.image = fileInfo.imageUrl;
@@ -352,16 +409,16 @@ async function updateDonation(req, res, next) {
     } catch (err) {
       console.error("Error deleting old image:", err);
     }
-}
+  }
 }
 paginate.paginate(donation);
 
 module.exports = {
-    createDonation,
-    getAllDonation,
-    getAllClosestDonation,
-    getAllDonationByUserId,
-    getDetailDonation,
-    deleteDonation,
-    updateDonation,
+  createDonation,
+  getAllDonation,
+  getAllClosestDonation,
+  getAllDonationByUserId,
+  getDetailDonation,
+  deleteDonation,
+  updateDonation,
 };

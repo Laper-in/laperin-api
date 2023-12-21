@@ -1,38 +1,56 @@
 const { user } = require("../database/models");
-const { uploadToBucket , bucket } = require("../middlewares/gcsMiddleware");
+const { uploadToBucket, bucket } = require("../middlewares/gcsMiddleware");
 const Validator = require("fastest-validator");
+const {validateUser , containsBadWords} = require("../validators/validator");
 const v = new Validator();
 const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const {
-  generateAccessToken, clearToken, authData, isUserOwner, isAdmin,isUserDeleted,
-} = require('../middlewares/auth');
+  generateAccessToken,
+  clearToken,
+  authData,
+  isUserOwner,
+  isAdmin,
+  isUserDeleted,
+} = require("../middlewares/auth");
 const paginate = require("sequelize-paginate");
 
 async function signUp(req, res) {
-  console.log('Entire Request Body:', req.body);
+  console.log("Entire Request Body:", req.body);
   const { username, email, password } = req.body;
+
+  if (
+    containsBadWords(req.body.username) ||
+    containsBadWords(req.body.email)
+  ) {
+    return res.status(400).json({
+      message: "Input contains inappropriate words",    });
+  }
+
+  // Validate user input
+  const validation = await validateUser({ email, username ,password });
+  if (validation.error) {
+    return res.status(400).json({ error: validation.error });
+  }
+
   try {
-    // Check if required fields are provided
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: 'Username, email, and password are required' });
-    }
-    // Check if a user with the provided email already exists
     const existingUser = await user.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ error: 'User with this email already exists' });
+      return res
+        .status(404)
+        .json({ error: "User with this email already exists" });
     }
-    // Trim the password and then hash it
     const trimmedPassword = password.trim();
     const hashedPassword = await bcrypt.hash(trimmedPassword, 10);
-    // Create a new user
     const newUser = await user.create({
       username,
       email,
+      role: "user",
+      isDeleted: false,
       password: hashedPassword,
-      // Add other fields as needed
     });
+
     // Uncomment code below if you want to generate access and refresh tokens
     const accessToken = generateAccessToken(newUser);
     // const refreshToken = generateRefreshToken(newUser);
@@ -45,26 +63,29 @@ async function signUp(req, res) {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
 async function signIn(req, res) {
   const { username, password } = req.body;
+
   try {
     const foundUser = await user.findOne({ where: { username } });
     if (!foundUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     const userDeleted = await isUserDeleted(foundUser.id);
     if (userDeleted) {
-      return res.status(403).json({ error: 'Forbidden: User account has been deleted' });
+      return res
+        .status(403)
+        .json({ error: "Forbidden: User account has been deleted" });
     }
     if (!password) {
-      return res.status(400).json({ error: 'Password is required' });
+      return res.status(400).json({ message: "Password is required" });
     }
     const passwordMatch = await bcrypt.compare(password, foundUser.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Invalid password' });
+      return res.status(401).json({ message: "Invalid password" });
     }
     const accessToken = generateAccessToken(foundUser);
     const userResponse = {
@@ -73,32 +94,47 @@ async function signIn(req, res) {
       email: foundUser.email,
       role: foundUser.role,
     };
-    res.status(200).json({ message: `Login User ID ${foundUser.id} Success`, accessToken, data: userResponse });
+    res.status(200).json({
+      message: `Login User ID ${foundUser.id} Success`,
+      accessToken,
+      data: userResponse,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 async function signOut(req, res) {
   try {
-    const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+    const token =
+      req.headers.authorization && req.headers.authorization.split(" ")[1];
     if (!token) {
-      return res.status(401).json({ error: 'Unauthorized: Token not provided' });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Token not provided" });
     }
     if (authData.blacklistedTokens.includes(token)) {
-      return res.status(401).json({ error: 'Unauthorized: Token has been revoked' });
+      return res
+        .status(401)
+        .json({ error: "Unauthorized: Token has been revoked" });
     }
-    if (req.user && req.user.userId && req.user.usernames) {
-      const { userId, usernames } = req.user;
+    if (req.user && req.user.userId && req.user.username) {
+      const { userId, username } = req.user;
       // Clear (blacklist) the token
       clearToken(token);
-      res.status(200).json({ message: `Sign-out successful for user ID ${userId} Usernames ${usernames}`, userId, usernames });
+      res.status(200).json({
+        message: `Sign-out successful for user ID ${userId} Usernames ${username}`,
+        userId,
+        usernames,
+      });
     } else {
-      res.status(401).json({ error: 'Unauthorized: User information not available' });
+      res
+        .status(401)
+        .json({ error: "Unauthorized: User information not available" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 async function getAllUsers(req, res, next) {
@@ -113,7 +149,7 @@ async function getAllUsers(req, res, next) {
     });
 
     const response = {
-      message: 'Get All Users Success',
+      message: "Get All Users Success",
       total_count: result.total,
       total_pages: result.pages,
       current_page: result.page,
@@ -134,17 +170,18 @@ async function getDetailUsers(req, res) {
     const users = await user.findByPk(userId);
 
     if (!users) {
-      return res.status(404).json({ message: 'User not found', data: null });
+      return res.status(404).json({ message: "User not found", data: null });
     }
 
-    res.status(200).json({ message: `Get Detail ID ${userId} Success`, data: users });
+    res
+      .status(200)
+      .json({ message: `Get Detail ID ${userId} Success`, data: users });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 async function updateUsers(req, res, next) {
-
   const userId = req.user.userId;
   const data = {
     email: req.body.email,
@@ -154,6 +191,15 @@ async function updateUsers(req, res, next) {
     updatedAt: new Date(),
     updatedBy: userId,
   };
+
+  if (
+    containsBadWords(req.body.email) ||
+    containsBadWords(req.body.fullname)||
+    containsBadWords(req.body.alamat)
+  ) {
+    return res.status(400).json({
+      message: "Input contains inappropriate words",    });
+  }
 
   try {
     // Check if the password field is provided
@@ -168,20 +214,21 @@ async function updateUsers(req, res, next) {
 
     res.status(200).json({
       message: "Success update data",
-      data: data,
+      // data: data,
     });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({
       message: "Update Failed",
-      data: error,
+      // data: error,
     });
   }
   // Function to perform the validation and update
   async function validateAndUpdate() {
     const schema = {
-      email: { type: "email", optional: true },
-      password: { type: "string", min: 5, max: 255, optional: true },
+      fullname: { type: "string",min: 5, max: 100, optional: true  },
+      alamat: { type: "string", min: 5, max: 255, optional: true },
+      telephone: { type: "string", min: 10, max: 14, optional: true },
     };
 
     const validationResult = v.validate(data, schema);
@@ -196,13 +243,17 @@ async function updateUsers(req, res, next) {
     if (req.file) {
       const destinationFolder = "users";
       const fileInfo = await new Promise((resolve, reject) => {
-        uploadToBucket(req.file, (err, fileInfo) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(fileInfo);
-          }
-        }, destinationFolder);
+        uploadToBucket(
+          req.file,
+          (err, fileInfo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(fileInfo);
+            }
+          },
+          destinationFolder
+        );
       });
 
       console.log("File uploaded to bucket:", fileInfo);
@@ -255,15 +306,19 @@ async function deleteUsers(req, res) {
       const userToDelete = await user.findByPk(userIdToDelete);
 
       if (!userToDelete) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ message: "User not found" });
       }
       if (userToDelete.isDeleted || userToDelete.deletedAt) {
-        return res.status(400).json({ message: 'User has already been deleted' });
+        return res
+          .status(400)
+          .json({ message: "User has already been deleted" });
       }
-      if (userToDelete.role === 'admin') {
-        return res.status(403).json({ error: 'Forbidden: Cannot delete an admin user' });
+      if (userToDelete.role === "admin") {
+        return res
+          .status(403)
+          .json({ message: "Forbidden: Cannot delete an admin user" });
       }
-      const deletedByUserId = req.user.userId; 
+      const deletedByUserId = req.user.userId;
       await user.update(
         { isDeleted: true, deletedBy: deletedByUserId, deletedAt: new Date() },
         { where: { id: userIdToDelete } }
@@ -277,7 +332,7 @@ async function deleteUsers(req, res) {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 async function searchUser(req, res, next) {
@@ -286,7 +341,7 @@ async function searchUser(req, res, next) {
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 10;
 
-    let order = [['username', 'ASC']];
+    let order = [["username", "ASC"]];
 
     if (searchTerm) {
       order = []; // Reset the order for custom search terms
@@ -329,14 +384,14 @@ async function searchUser(req, res, next) {
   }
 }
 async function setStatusOnline(req, res) {
-  const userIdToUpdate = req.user.userId; 
+  const userIdToUpdate = req.user.userId;
   const { isOnline } = req.body;
 
   try {
     const userToUpdate = await user.findByPk(userIdToUpdate);
 
     if (!userToUpdate) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     await user.update({ isOnline }, { where: { id: userIdToUpdate } });
@@ -347,7 +402,7 @@ async function setStatusOnline(req, res) {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 

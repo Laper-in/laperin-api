@@ -1,6 +1,6 @@
-'use strict';
-const {Model} = require('sequelize');
-const { nanoid } = require('nanoid');
+"use strict";
+const { Model } = require("sequelize");
+const { nanoid } = require("nanoid");
 module.exports = (sequelize, DataTypes) => {
   class Ingredient extends Model {
     /**
@@ -12,17 +12,20 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Ingredient.init({
-    id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      defaultValue: () => nanoid(10) 
+  Ingredient.init(
+    {
+      id: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        defaultValue: () => nanoid(10),
+      },
+      name: DataTypes.STRING(50),
+      image: DataTypes.STRING(255),
     },
-    name: DataTypes.STRING(50),
-    image: DataTypes.STRING(255),
-  }, {
-    sequelize,
-    modelName: 'ingredient',
-  });
+    {
+      sequelize,
+      modelName: "ingredient",
+    }
+  );
   return Ingredient;
 };

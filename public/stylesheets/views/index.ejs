@@ -1,11 +1,37 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Hai <%= title %></p>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laper.in</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column; /* Added to stack image and text vertically */
+      height: 100vh;
+      margin: 0;
+      background-color: orange; /* Set your desired background color */
+      color: white; /* Set your desired text color */
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 3em; /* Adjust the font size as needed */
+    }
+
+    img {
+      max-width: 100%; /* Ensure the image doesn't exceed its container's width */
+      margin-bottom: 20px; /* Adjust the margin as needed */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <img src="https://cdn.discordapp.com/attachments/731292697964576833/1186281863938060358/Group_289_1.png?ex=6592ae14&is=65803914&hm=cb73ad7b8b3472d19a987be0488b9519c32cdc5e8ae866178c7d7f56c7e1f0c3" alt="Logo">
+    <h1>Coming Soon</h1>
+  </div>
+</body>
 </html>
