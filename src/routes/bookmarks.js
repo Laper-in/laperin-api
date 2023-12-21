@@ -16,18 +16,11 @@ router.post(
   bookmarkControllers.createBookmark
 );
 router.get(
-  "/category",
-  authenticateToken,
-  authenticateRefreshToken,
-  checkBlacklist,
-  bookmarkControllers.getAllBookmarksCategoryByUserId
-);
-router.get(
   "/",
   authenticateToken,
   authenticateRefreshToken,
   checkBlacklist,
-  bookmarkControllers.getAllBookmarksByUserId
+  bookmarkControllers.getAllBookmarksCategoryByUserId
 );
 router.get(
   "/search",
@@ -43,5 +36,4 @@ router.delete(
   checkBlacklist,
   bookmarkControllers.deleteBookmark
 );
-
 module.exports = router;
