@@ -56,6 +56,49 @@ function mergeCategories(categories) {
   return [...new Set(categories)].join(", ");
 }
 
+async function getAllBookmarksByUserId(req, res, next) {
+  const userId = req.user.userId; // Gunakan userId dari JWT
+  //const page = parseInt(req.query.page, 10) || 1;
+  //const pageSize = parseInt(req.query.pageSize, 10) || 10;
+  try {
+    //{ count, rows: bookmarks }
+    const bookmarks = await bookmark.findAll({
+      where: { idUser: userId },
+    });
+
+    const idRecipes = bookmarks.map((bookmark) => bookmark.idRecipe);
+    const recipesData = await recipe.findAll({
+      where: {
+        id: {
+          [Op.in]: idRecipes,
+        },
+      },
+    });
+
+    const bookmarksWithRecipes = bookmarks.map((bookmark) => {
+      const correspondingRecipe = recipesData.find(
+        (recipe) => recipe.id === bookmark.idRecipe
+      );
+      return {
+        bookmark: bookmark,
+        // recipe: correspondingRecipe,
+      };
+    });
+    const response = {
+      message: "Read bookmarks success",
+      // total_count: bookmarks.length,
+      data: bookmarksWithRecipes,
+    };
+
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Read bookmarks failed",
+    });
+  }
+}
+
 async function getAllBookmarksCategoryByUserId(req, res, next) {
   const userId = req.user.userId;
   try {
@@ -201,6 +244,7 @@ paginate.paginate(bookmark);
 module.exports = {
   createBookmark,
   getAllBookmarksCategoryByUserId,
+  getAllBookmarksByUserId,
   deleteBookmark,
   searchAllBookmarkByCategory,
 };

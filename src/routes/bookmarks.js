@@ -20,6 +20,13 @@ router.get(
   authenticateToken,
   authenticateRefreshToken,
   checkBlacklist,
+  bookmarkControllers.getAllBookmarksByUserId
+);
+router.get(
+  "/category",
+  authenticateToken,
+  authenticateRefreshToken,
+  checkBlacklist,
   bookmarkControllers.getAllBookmarksCategoryByUserId
 );
 router.get(
