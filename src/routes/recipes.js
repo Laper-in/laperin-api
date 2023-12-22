@@ -41,6 +41,8 @@ router.delete(
   checkBlacklist,
   recipeController.deleteRecipe
 );
+
+router.get("/sort/category", recipeController.getAllRecipeByCategory);
 router.get("/search/name", recipeController.searchRecipeByName);
 router.get("/search/id", recipeController.searchRecipeById);
 router.get("/search/category", recipeController.searchRecipeByCategory);

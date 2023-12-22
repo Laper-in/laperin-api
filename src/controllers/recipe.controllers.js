@@ -1,8 +1,8 @@
-const { recipe } = require("../database/models");
-const { nanoid } = require("nanoid");
-const { Op } = require("sequelize");
-const {
-  uploadToBucket,
+  const { recipe } = require("../database/models");
+  const { nanoid } = require("nanoid");
+  const { Op } = require("sequelize");
+  const {
+    uploadToBucket,
   bucket,
   uploadVideoToBucket,
 } = require("../middlewares/gcsMiddleware");
@@ -120,6 +120,44 @@ async function getAllRecipe(req, res, next) {
     res.status(500).send(err);
   }
 }
+async function getAllRecipeByCategory(req, res, next) {
+  try {
+    const recipes = await recipe.findAll();
+
+    const idRecipes = recipes.map((recipe) => recipe.id);
+
+    if (idRecipes.length === 0) {
+      res.status(200).json({
+        message: "No recipes found",
+      });
+      return;
+    }
+
+    const uniqueCategories = new Set();
+
+    const recipesWithCategories = recipes.map((recipe) => {
+      const categories = recipe.category.split(",");
+      categories.forEach((category) => uniqueCategories.add(category.trim()));
+
+      return null;
+    });
+
+    const categoriesString = Array.from(uniqueCategories).join(", ");
+
+    const response = {
+      data: categoriesString,
+    };
+
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch recipe categories",
+    });
+  }
+}
+
+
 async function getDetailRecipe(req, res, next) {
   try {
     const recipeId = req.params.id;
@@ -233,8 +271,6 @@ async function deleteRecipe(req, res, next) {
     });
   }
 }
-
-// Function to delete file from Google Cloud Storage
 async function deleteFileFromGCS(fileUrl) {
   if (!fileUrl) {
     // If there's no file URL, exit the function
@@ -252,7 +288,6 @@ async function deleteFileFromGCS(fileUrl) {
     console.error("Error deleting file from GCS:", err);
   }
 }
-
 async function searchRecipeByName(req, res, next) {
   const searchTerm = req.query.q;
   const page = parseInt(req.query.page, 10) || 1;
@@ -424,6 +459,7 @@ module.exports = {
   createRecipe,
   getAllRecipe,
   getDetailRecipe,
+  getAllRecipeByCategory,
   updateRecipe,
   deleteRecipe,
   searchRecipeByName,
